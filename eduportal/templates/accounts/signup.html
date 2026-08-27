@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Sign Up{% endblock %}
+{% block content %}
+<h1>Create Account</h1>
+<form method="post" class="form">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <ul class="non-field-errors">
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% for field in form %}
+        {% if field.name == 'password' or field.name == 'confirm_password' %}
+            <p>
+                {{ field.label_tag }}
+                <div class="password-field">
+                    {{ field }}
+                    <button type="button" class="password-toggle" data-toggle-password>Show</button>
+                </div>
+                {% if field.errors %}
+                    <ul class="field-errors">
+                        {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                {% endif %}
+            </p>
+        {% else %}
+            <p>
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}
+                    <ul class="field-errors">
+                        {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                {% endif %}
+            </p>
+        {% endif %}
+    {% endfor %}
+
+    <button type="submit">Sign Up</button>
+</form>
+<div class="auth-links">
+    <span>Already have an account? <a href="{% url 'accounts:login' %}">Login</a></span>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Result - {{ attempt.test.title }}{% endblock %}
+{% block content %}
+<div class="marksheet">
+    <div class="marksheet-head">
+        <div>
+            <span class="eyebrow">Mark Sheet</span>
+            <h1>{{ attempt.test.title }}</h1>
+            <span class="ht-sub">{{ attempt.test.subject.name }} &middot; Class {{ attempt.test.subject.class_level }}</span>
+        </div>
+        <div class="marksheet-score">
+            <span class="score-num">{{ attempt.score }}<small>/{{ attempt.total }}</small></span>
+            <span class="score-label">Marks obtained</span>
+        </div>
+    </div>
+</div>
+
+<div class="list">
+    {% for answer in answers %}
+    <div class="list-item answer-row {% if answer.is_correct %}correct{% else %}wrong{% endif %}">
+        <span class="q-num">Q{{ forloop.counter }}</span>
+        <div class="answer-body">
+            <p class="q-text">{{ answer.question.text }}</p>
+            <p class="a-text">Your answer: {{ answer.selected_choice.text|default:"Not answered" }}
+                <span class="verdict">{% if answer.is_correct %}✅ Correct{% else %}❌ Wrong{% endif %}</span>
+            </p>
+            {% if not answer.is_correct %}
+            <p class="correct-text">Correct answer:
+                {% for choice in answer.question.choices.all %}
+                    {% if choice.is_correct %}{{ choice.text }}{% endif %}
+                {% endfor %}
+            </p>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

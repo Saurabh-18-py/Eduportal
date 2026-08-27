@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}{{ subject.name }} - Chapters{% endblock %}
+{% block content %}
+<span class="eyebrow">{{ subject.board }} &middot; Class {{ subject.class_level }}</span>
+<h1>{{ subject.name }} &mdash; Chapters</h1>
+<div class="list">
+    {% for chapter in chapters %}
+    <a class="list-item" href="{% url 'notes:chapter_notes' chapter.id %}">
+        <span class="q-num">{{ chapter.order }}</span> {{ chapter.title }}
+    </a>
+    {% empty %}
+    <p class="empty-note">No chapters added yet.</p>
+    {% endfor %}
+</div>
+<p style="margin-top:20px;"><a href="{% url 'mocktest:test_list' subject.id %}" class="btn-small">Take Mock Tests for {{ subject.name }}</a></p>
+{% endblock %}
