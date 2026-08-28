@@ -46,13 +46,7 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                messages.success(request, f"Welcome back, {user.username}!")
-                next_url = request.POST.get('next') or request.GET.get('next')
-                return redirect(next_url or 'home')
-        # form.is_valid() is False for wrong username/password/inactive account.
-        # AuthenticationForm already sets a helpful non_field_error, but we also
-        # add a message so it shows in the site-wide alert banner.
-        messages.error(request, "Invalid username or password. Please try again.")
+                return redirect('home')
     else:
         form = AuthenticationForm()
 

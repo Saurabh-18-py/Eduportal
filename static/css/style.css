@@ -276,81 +276,8 @@ h2 {
     font-family: var(--font-body);
     font-size: 0.95rem;
     background: var(--paper);
-    width: 100%;
 }
 .form input:focus, .form select:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
-
-/* Field-level + non-field error text (Django form.errors) */
-.field-errors, .form ul.errorlist {
-    list-style: none;
-    color: var(--red);
-    font-size: 0.82rem;
-    font-weight: 500;
-    margin-top: 4px;
-}
-.form ul.errorlist li { margin-top: 2px; }
-.form .errorlist + input,
-.form p:has(ul.errorlist) input {
-    border-color: var(--red);
-}
-.non-field-errors {
-    background: #FDECEA;
-    border-left: 4px solid var(--red);
-    color: var(--red);
-    padding: 10px 14px;
-    border-radius: 6px;
-    font-size: 0.88rem;
-    font-weight: 500;
-    margin-bottom: 16px;
-    list-style: none;
-}
-
-/* Show/hide password toggle */
-.password-field {
-    position: relative;
-    margin-top: 5px;
-}
-.password-field input {
-    margin-top: 0;
-    padding-right: 60px;
-}
-.password-toggle {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: var(--teal);
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    cursor: pointer;
-    padding: 4px 6px;
-    margin-top: 0;
-}
-.password-toggle:hover { background: none; color: var(--red); text-decoration: underline; }
-
-/* Auth helper links under forms */
-.auth-links {
-    margin-top: 14px;
-    font-size: 0.88rem;
-    color: var(--ink-soft);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.auth-links a { color: var(--teal); font-weight: 600; text-decoration: none; }
-.auth-links a:hover { text-decoration: underline; }
-
-.form-help {
-    color: var(--ink-soft);
-    font-size: 0.88rem;
-    margin-bottom: 18px;
-    line-height: 1.5;
-}
 
 button {
     background: var(--ink);
