@@ -45,3 +45,19 @@ class Note(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class PYQPaper(models.Model):
+    class_level = models.IntegerField(choices=CLASS_CHOICES)
+    year = models.PositiveIntegerField()
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='pyq_papers')
+    set_label = models.CharField(max_length=50, blank=True, help_text='Optional, e.g. "Set 1" if multiple sets exist')
+    pdf_file = models.FileField(upload_to='pyq_papers/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-year', 'subject__name']
+
+    def __str__(self):
+        label = f" ({self.set_label})" if self.set_label else ""
+        return f"{self.subject.name} {self.year}{label} - Class {self.class_level}"

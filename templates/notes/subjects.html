@@ -4,6 +4,15 @@
 <span class="eyebrow">Class {{ class_level }}</span>
 <h1>Choose your subject</h1>
 
+<a class="pyq-banner" href="{% url 'notes:pyq_years' class_level %}">
+    <span class="pyq-banner-icon">📋</span>
+    <span>
+        <strong>Previous Year Papers</strong>
+        <span class="ht-sub">Actual CBSE board papers, year-wise (2020-2025)</span>
+    </span>
+    <span class="pyq-banner-arrow">&rarr;</span>
+</a>
+
 <div class="ticket-grid">
     {% for subject in subjects %}
     <a class="hall-ticket" href="{% url 'notes:subject_chapters' subject.id %}">

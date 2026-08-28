@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Class {{ class_level }} - Previous Year Papers{% endblock %}
+{% block content %}
+<span class="eyebrow">Class {{ class_level }} &middot; CBSE Board Papers</span>
+<h1>Previous Year Question Papers</h1>
+
+<div class="ticket-grid">
+    {% for y in years %}
+    <a class="hall-ticket" href="{% url 'notes:pyq_subjects' class_level y %}">
+        <div class="hall-ticket-stub">PYQ&bull;{{ y }}</div>
+        <div class="hall-ticket-body">
+            <span class="ht-label">{% if y in available_years %}Available{% else %}Not added yet{% endif %}</span>
+            <h2>{{ y }}</h2>
+            <span class="ht-sub">Board Exam Papers</span>
+        </div>
+        <div class="hall-ticket-barcode"></div>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %}

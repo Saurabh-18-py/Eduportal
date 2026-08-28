@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}{{ year }} Papers - Class {{ class_level }}{% endblock %}
+{% block content %}
+<span class="eyebrow">Class {{ class_level }} &middot; {{ year }}</span>
+<h1>Board Papers &mdash; {{ year }}</h1>
+
+<div class="list">
+    {% for paper in papers %}
+    <div class="list-item">
+        <span>📄 {{ paper.subject.name }}{% if paper.set_label %} ({{ paper.set_label }}){% endif %}</span>
+        <a href="{{ paper.pdf_file.url }}" download class="btn-small">Download PDF</a>
+    </div>
+    {% empty %}
+    <p class="empty-note">No papers uploaded yet for {{ year }}. Check back soon.</p>
+    {% endfor %}
+</div>
+{% endblock %}
