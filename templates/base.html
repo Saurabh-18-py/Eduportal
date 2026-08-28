@@ -46,5 +46,19 @@
         {% endif %}
         {% block content %}{% endblock %}
     </main>
+
+    <script>
+        // Reusable show/hide password toggle.
+        // Wrap a password <input> in <div class="password-field"> and add
+        // <button type="button" class="password-toggle" data-toggle-password>Show</button>
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('[data-toggle-password]');
+            if (!btn) return;
+            const input = btn.closest('.password-field').querySelector('input');
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            btn.textContent = isHidden ? 'Hide' : 'Show';
+        });
+    </script>
 </body>
 </html>

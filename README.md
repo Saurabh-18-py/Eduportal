@@ -121,6 +121,24 @@ python manage.py import_mcqs chapter1_science.json --subject "Science" --class 1
 
 See the prompt template and full steps in the project notes, or ask me again if you need this.
 
+## Login System — What's New
+
+- **Login errors**: wrong username/password now shows a clear red error banner instead of silently reloading the blank form.
+- **Show/Hide password**: click "Show" next to any password field (login, signup, reset) to reveal what you typed.
+- **Forgot Password** (`/accounts/password-reset/`): student enters their email → gets a reset link → sets a new password. Link expires after 1 hour and can only be used once.
+
+### Testing "Forgot Password" locally (Termux)
+By default, `EMAIL_BACKEND` is set to the **console backend** — no real email is sent. Instead, when you request a reset, the full email (including the reset link) is printed directly in your `runserver` terminal. Just copy that link into your browser to continue.
+
+### Enabling real password-reset emails (production)
+To actually email the reset link (e.g. using a Gmail account with an [App Password](https://myaccount.google.com/apppasswords)):
+```bash
+export EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
+export EMAIL_HOST_USER='youraddress@gmail.com'
+export EMAIL_HOST_PASSWORD='your-16-char-app-password'
+```
+Add these to `~/.bashrc` (like the `GROQ_API_KEY` step above) so they persist. Note: signup's `email` field is currently optional — for password reset to actually reach a student, make sure they enter a real email at signup.
+
 ## Notes
 - Currently CBSE only — board field is already there in the Subject model, so adding other boards later just means adding more choices to `BOARD_CHOICES` in `notes/models.py` and running migrations again.
 - `DEBUG = True` and `SECRET_KEY` are set for local/dev use only — change both before putting this on the internet.
