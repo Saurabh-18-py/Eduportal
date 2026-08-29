@@ -7,7 +7,7 @@
     {% for note in notes %}
     <div class="list-item">
         <span>📄 {{ note.title }}</span>
-        <a href="{{ note.pdf_file.url }}" download class="btn-small">Download PDF</a>
+        <a href="{{ note.pdf_file.url }}" target="_blank" rel="noopener" class="btn-small">View PDF</a>
     </div>
     {% empty %}
     <p>No notes uploaded yet for this chapter.</p>

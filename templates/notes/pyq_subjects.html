@@ -8,7 +8,7 @@
     {% for paper in papers %}
     <div class="list-item">
         <span>📄 {{ paper.subject.name }}{% if paper.set_label %} ({{ paper.set_label }}){% endif %}</span>
-        <a href="{{ paper.pdf_file.url }}" download class="btn-small">Download PDF</a>
+        <a href="{{ paper.pdf_file.url }}" target="_blank" rel="noopener" class="btn-small">View PDF</a>
     </div>
     {% empty %}
     <p class="empty-note">No papers uploaded yet for {{ year }}. Check back soon.</p>
