@@ -100,7 +100,7 @@ if CLOUDINARY_STORAGE['CLOUD_NAME']:
             "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
         },
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            "BACKEND": "eduportal.storage.LenientManifestStaticFilesStorage",
         },
     }
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
@@ -110,7 +110,7 @@ else:
             "BACKEND": "django.core.files.storage.FileSystemStorage",
         },
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            "BACKEND": "eduportal.storage.LenientManifestStaticFilesStorage",
         },
     }
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
@@ -118,7 +118,7 @@ else:
 # django-cloudinary-storage's collectstatic override reads this legacy setting
 # directly; Django's new STORAGES dict alone doesn't expose it, so we set it
 # explicitly to whitenoise (we never route static assets to Cloudinary).
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'eduportal.storage.LenientManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
