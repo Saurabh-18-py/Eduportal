@@ -1,4 +1,11 @@
 from django.db import models
+from django.conf import settings
+
+if settings.CLOUDINARY_STORAGE.get('CLOUD_NAME'):
+    from cloudinary_storage.storage import RawMediaCloudinaryStorage
+    PDF_STORAGE = RawMediaCloudinaryStorage()
+else:
+    PDF_STORAGE = None
 
 CLASS_CHOICES = [
     (9, 'Class 9'),
@@ -40,7 +47,7 @@ class Chapter(models.Model):
 class Note(models.Model):
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='notes')
     title = models.CharField(max_length=200)
-    pdf_file = models.FileField(upload_to='notes_pdfs/')
+    pdf_file = models.FileField(upload_to='notes_pdfs/', storage=PDF_STORAGE)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -52,7 +59,7 @@ class PYQPaper(models.Model):
     year = models.PositiveIntegerField()
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='pyq_papers')
     set_label = models.CharField(max_length=50, blank=True, help_text='Optional, e.g. "Set 1" if multiple sets exist')
-    pdf_file = models.FileField(upload_to='pyq_papers/')
+    pdf_file = models.FileField(upload_to='pyq_papers/', storage=PDF_STORAGE)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
