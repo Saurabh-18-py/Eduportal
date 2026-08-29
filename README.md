@@ -139,6 +139,21 @@ export EMAIL_HOST_PASSWORD='your-16-char-app-password'
 ```
 Add these to `~/.bashrc` (like the `GROQ_API_KEY` step above) so they persist. Note: signup's `email` field is currently optional — for password reset to actually reach a student, make sure they enter a real email at signup.
 
+## Permanent File Storage with Cloudinary (Notes & PYQ PDFs)
+
+Uploaded PDFs (Notes, PYQ papers) live in Render's local storage by default, which gets wiped on every redeploy — same problem SQLite had. Cloudinary fixes this for files, the same way Supabase fixed it for the database.
+
+**1. Create a free Cloudinary account** at cloudinary.com. Your dashboard shows three values: **Cloud Name**, **API Key**, **API Secret**.
+
+**2. Add these to Render** (`eduportal` service → Environment tab), three separate variables:
+- `CLOUDINARY_CLOUD_NAME` = your cloud name
+- `CLOUDINARY_API_KEY` = your API key
+- `CLOUDINARY_API_SECRET` = your API secret
+
+**3. Redeploy.** The app automatically switches to Cloudinary for file uploads once these three variables are present (falls back to local storage in Termux, where they aren't set).
+
+**4. Re-upload anything you added before this was set up** — PDFs uploaded while on local storage were on the old (now-wiped) storage and won't carry over automatically. New uploads from now on are permanent.
+
 ## Notes
 - Currently CBSE only — board field is already there in the Subject model, so adding other boards later just means adding more choices to `BOARD_CHOICES` in `notes/models.py` and running migrations again.
 - `DEBUG = True` and `SECRET_KEY` are set for local/dev use only — change both before putting this on the internet.
