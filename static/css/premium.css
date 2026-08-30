@@ -1,0 +1,207 @@
+/* ================================================================
+   PREMIUM POLISH LAYER
+   Loaded after style.css - adds depth, motion, and refinement
+   without changing the existing "hall ticket" design language.
+   ================================================================ */
+
+/* ---------- Global smoothing & motion ---------- */
+html { scroll-behavior: smooth; }
+
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    animation: pageFadeIn 0.35s ease-out;
+}
+
+@keyframes pageFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Give every interactive element a consistent, smooth transition */
+a, button, input, .btn, .btn-small, .btn-ghost,
+.card, .avatar-badge, .avatar-option {
+    transition: transform 0.18s cubic-bezier(.2,.8,.2,1),
+                box-shadow 0.18s cubic-bezier(.2,.8,.2,1),
+                background-color 0.18s ease,
+                border-color 0.18s ease,
+                color 0.18s ease,
+                opacity 0.18s ease;
+}
+
+/* ---------- Header: subtle depth + gradient ---------- */
+.ticket-header {
+    background: linear-gradient(135deg, var(--ink) 0%, #26264a 100%);
+    box-shadow: 0 2px 18px rgba(0,0,0,0.25);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.brand-mark {
+    box-shadow: 0 2px 6px rgba(201,154,46,0.35);
+}
+
+.brand:hover .brand-mark {
+    transform: rotate(-4deg) scale(1.05);
+}
+
+/* ---------- Buttons: premium lift + shine ---------- */
+.btn, .btn-small {
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(27,27,58,0.15);
+}
+
+.btn::after, .btn-small::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -60%;
+    width: 40%; height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.35), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.5s ease;
+}
+
+.btn:hover::after, .btn-small:hover::after { left: 130%; }
+
+.btn:hover, .btn-small:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(27,27,58,0.25);
+}
+
+.btn:active, .btn-small:active {
+    transform: translateY(0px);
+    box-shadow: 0 2px 6px rgba(27,27,58,0.2);
+}
+
+.btn-ghost:hover {
+    transform: translateY(-1px);
+}
+
+/* ---------- Cards: elevate on hover, refined shadow ---------- */
+.card {
+    box-shadow: 0 2px 10px rgba(27,27,58,0.08);
+    border: 1px solid rgba(220,211,191,0.6);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px rgba(27,27,58,0.14);
+}
+
+/* ---------- Avatars: glow + smooth select ---------- */
+.avatar-badge {
+    box-shadow: 0 2px 8px rgba(27,27,58,0.12);
+}
+
+.avatar-badge-lg {
+    box-shadow: 0 4px 16px rgba(201,154,46,0.3);
+}
+
+.avatar-option {
+    border-radius: 10px;
+    padding: 6px;
+}
+
+.avatar-option:hover {
+    background: rgba(201,154,46,0.08);
+    transform: translateY(-2px);
+}
+
+.avatar-option-selected {
+    background: rgba(201,154,46,0.14);
+    box-shadow: 0 0 0 2px var(--gold) inset;
+}
+
+/* ---------- Links: refined underline animation ---------- */
+.ticket-header-inner a:not(.btn):not(.btn-small):not(.brand) {
+    position: relative;
+}
+
+.ticket-header-inner a:not(.btn):not(.btn-small):not(.brand)::after {
+    content: '';
+    position: absolute;
+    left: 0; bottom: -3px;
+    width: 0; height: 2px;
+    background: var(--gold);
+    transition: width 0.25s ease;
+}
+
+.ticket-header-inner a:not(.btn):not(.btn-small):not(.brand):hover::after {
+    width: 100%;
+}
+
+/* ---------- Typography polish ---------- */
+h1, h2, h3, .section-heading {
+    letter-spacing: -0.01em;
+}
+
+h1 {
+    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+}
+
+/* ---------- Inputs: premium focus ring ---------- */
+input[type="text"], input[type="email"], input[type="password"],
+input[type="number"], select, textarea {
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 0 3px rgba(201,154,46,0.18);
+}
+
+/* ---------- Scrollbar polish (webkit) ---------- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--paper); }
+::-webkit-scrollbar-thumb {
+    background: var(--rule);
+    border-radius: 10px;
+    border: 2px solid var(--paper);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* ---------- Subtle entrance animation for lists/grids ---------- */
+.card, .avatar-option {
+    animation: cardIn 0.4s ease-out both;
+}
+
+@keyframes cardIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Stagger children of common grid/list containers */
+.card:nth-child(1) { animation-delay: 0.02s; }
+.card:nth-child(2) { animation-delay: 0.06s; }
+.card:nth-child(3) { animation-delay: 0.10s; }
+.card:nth-child(4) { animation-delay: 0.14s; }
+.card:nth-child(5) { animation-delay: 0.18s; }
+.card:nth-child(6) { animation-delay: 0.22s; }
+.card:nth-child(n+7) { animation-delay: 0.24s; }
+
+/* ---------- Badges / pills refinement ---------- */
+.eyebrow {
+    letter-spacing: 0.08em;
+}
+
+/* ---------- Loading/hover cursor polish for whole site ---------- */
+button, .btn, .btn-small, .avatar-option, a { cursor: pointer; }
+
+/* ---------- Mobile: reduce motion slightly for perf ---------- */
+@media (max-width: 640px) {
+    .card:hover { transform: translateY(-2px); }
+}
+
+/* ---------- Respect reduced motion preference ---------- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        transition-duration: 0.001ms !important;
+    }
+}
