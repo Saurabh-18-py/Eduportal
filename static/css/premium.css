@@ -117,6 +117,15 @@ a, button, input, .btn, .btn-small, .btn-ghost,
     box-shadow: 0 0 0 2px var(--gold) inset;
 }
 
+/* ---------- Bottom nav polish ---------- */
+.bottom-nav-item {
+    transition: color 0.18s ease, background-color 0.18s ease, transform 0.15s ease;
+}
+
+.bottom-nav-item:active {
+    transform: scale(0.94);
+}
+
 /* ---------- Links: refined underline animation ---------- */
 .ticket-header-inner a:not(.btn):not(.btn-small):not(.brand) {
     position: relative;
