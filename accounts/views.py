@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.db.models import Avg, Count
 
 from .forms import SignupForm, ProfileForm, AvatarForm
-from .models import StudentProfile, AVATAR_CHOICES, AVATAR_EMOJI
+from .models import StudentProfile, Avatar
 
 
 def signup_view(request):
@@ -77,6 +77,8 @@ def profile_view(request):
     from mocktest.models import TestAttempt
 
     profile = getattr(request.user, 'profile', None)
+    if profile is None and not request.user.is_superuser and not request.user.is_staff:
+        profile = StudentProfile.objects.create(user=request.user, class_level=10)
 
     if request.method == 'POST' and 'save_profile' in request.POST:
         form = ProfileForm(request.POST)
@@ -106,7 +108,7 @@ def profile_view(request):
             messages.success(request, "Avatar updated.")
             return redirect('accounts:profile')
     else:
-        avatar_form = AvatarForm(initial={'avatar': profile.avatar if profile else 'fox'})
+        avatar_form = AvatarForm(initial={'avatar': profile.avatar if profile else None})
 
     attempts = TestAttempt.objects.filter(
         student=request.user, submitted_at__isnull=False
@@ -130,8 +132,7 @@ def profile_view(request):
         'profile': profile,
         'form': form,
         'avatar_form': avatar_form,
-        'avatar_choices': AVATAR_CHOICES,
-        'avatar_emoji': AVATAR_EMOJI,
+        'avatars': Avatar.objects.filter(is_active=True),
         'total_attempts': total_attempts,
         'avg_score_pct': avg_score_pct,
         'subject_stats': subject_stats,

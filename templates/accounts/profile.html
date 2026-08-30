@@ -1,12 +1,15 @@
 {% extends 'base.html' %}
-{% load account_extras %}
 {% block title %}My Profile{% endblock %}
 {% block content %}
 <span class="eyebrow">Account</span>
 <h1>My Profile</h1>
 
 <div class="profile-head">
-    <span class="avatar-badge avatar-badge-lg">{{ profile.avatar_emoji }}</span>
+    {% if profile.avatar_image_url %}
+        <img src="{{ profile.avatar_image_url }}" alt="Avatar" class="avatar-badge avatar-badge-lg avatar-img">
+    {% else %}
+        <span class="avatar-badge avatar-badge-lg">{{ profile.avatar_emoji }}</span>
+    {% endif %}
     <div>
         <p class="profile-name">{{ user.first_name|default:user.username }}</p>
         <p class="profile-sub">@{{ user.username }}{% if profile %} &middot; {{ profile.get_class_level_display }}{% endif %}</p>
@@ -17,18 +20,24 @@
 <form method="post" class="avatar-form">
     {% csrf_token %}
     <div class="avatar-picker">
-        {% for value, label in avatar_choices %}
-        <label class="avatar-option{% if avatar_form.avatar.value == value %} avatar-option-selected{% endif %}">
+        {% for avatar in avatars %}
+        <label class="avatar-option{% if profile.avatar_id == avatar.id %} avatar-option-selected{% endif %}">
             <input
                 type="radio"
                 name="avatar"
-                value="{{ value }}"
-                {% if avatar_form.avatar.value == value %}checked{% endif %}
+                value="{{ avatar.id }}"
+                {% if profile.avatar_id == avatar.id %}checked{% endif %}
                 onchange="this.form.requestSubmit(this.form.querySelector('[name=save_avatar]'))"
             >
-            <span class="avatar-badge">{{ avatar_emoji|get_item:value }}</span>
-            <span class="avatar-label">{{ label }}</span>
+            {% if avatar.image %}
+                <img src="{{ avatar.image.url }}" alt="{{ avatar.name }}" class="avatar-badge avatar-img">
+            {% else %}
+                <span class="avatar-badge">{{ avatar.emoji }}</span>
+            {% endif %}
+            <span class="avatar-label">{{ avatar.name }}</span>
         </label>
+        {% empty %}
+        <p class="empty-note">No avatars added yet. Add some from the admin panel.</p>
         {% endfor %}
     </div>
     <button type="submit" name="save_avatar" value="1" class="btn-small">Save Avatar</button>

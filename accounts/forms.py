@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import CLASS_CHOICES, AVATAR_CHOICES
+from .models import CLASS_CHOICES, Avatar
 
 
 class SignupForm(forms.Form):
@@ -33,4 +33,12 @@ class ProfileForm(forms.Form):
 
 
 class AvatarForm(forms.Form):
-    avatar = forms.ChoiceField(choices=AVATAR_CHOICES, widget=forms.RadioSelect)
+    avatar = forms.ModelChoiceField(
+        queryset=Avatar.objects.none(),
+        widget=forms.RadioSelect,
+        empty_label=None,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['avatar'].queryset = Avatar.objects.filter(is_active=True)
