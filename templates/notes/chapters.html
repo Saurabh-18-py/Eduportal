@@ -5,8 +5,9 @@
 <h1>{{ subject.name }} &mdash; Chapters</h1>
 <div class="list">
     {% for chapter in chapters %}
-    <a class="list-item" href="{% url 'notes:chapter_notes' chapter.id %}">
-        <span class="q-num">{{ chapter.order }}</span> {{ chapter.title }}
+    <a class="list-item chapter-item" href="{% url 'notes:chapter_notes' chapter.id %}">
+        <span class="q-num">{{ chapter.order }}</span>
+        <span class="chapter-title">{{ chapter.title }}</span>
     </a>
     {% empty %}
     <p class="empty-note">No chapters added yet.</p>

@@ -104,7 +104,12 @@ a { color: inherit; }
     padding: 4px 10px;
     border-radius: 4px;
     opacity: 1 !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
+
+.nav-avatar { width: 22px; height: 22px; font-size: 0.9rem; border: none; background: transparent; }
 
 .nav-cta {
     background: var(--gold);
@@ -276,6 +281,128 @@ h2 {
 
 .list-item.correct { border-left: 4px solid var(--teal); }
 .list-item.wrong { border-left: 4px solid var(--red); }
+
+/* Chapter list items have a number badge + title only (no trailing action),
+   so left-align them instead of space-between, which was pushing the title
+   text unevenly to the right depending on its length. */
+.list-item.chapter-item { justify-content: flex-start; gap: 16px; }
+.chapter-title { flex: 1; text-align: left; }
+
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ===== Embedded PDF viewer ===== */
+.pdf-toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    margin-bottom: 16px;
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--rule);
+}
+
+.btn-ghost:hover { background: var(--paper-raised); color: var(--ink); }
+
+.pdf-embed-wrap {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+    height: 75vh;
+    min-height: 420px;
+}
+
+.pdf-embed { width: 100%; height: 100%; border: 0; display: block; }
+
+.pdf-fallback-note { text-align: center; }
+
+/* ===== Profile page ===== */
+.section-heading {
+    margin-top: 32px;
+    margin-bottom: 8px;
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+}
+
+.profile-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.avatar-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    font-size: 1.4rem;
+    line-height: 1;
+}
+
+.avatar-badge-lg { width: 72px; height: 72px; font-size: 2.2rem; border: 2px solid var(--gold); }
+
+.profile-name { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; }
+.profile-sub { color: var(--ink-soft); font-size: 0.9rem; margin-top: 2px; }
+
+.avatar-form { margin-bottom: 8px; }
+
+.avatar-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    gap: 10px;
+    margin: 14px 0 16px;
+    max-width: 520px;
+}
+
+.avatar-option {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 6px;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--paper-raised);
+    cursor: pointer;
+    text-align: center;
+}
+
+.avatar-option input { position: absolute; opacity: 0; pointer-events: none; }
+.avatar-option-selected { border-color: var(--teal); border-width: 2px; }
+.avatar-label { font-size: 0.75rem; color: var(--ink-soft); }
+
+.stats-grid {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 14px 0 20px;
+}
+
+.stat-card {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--gold);
+    border-radius: 8px;
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 140px;
+}
+
+.stat-num { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; }
+.stat-label { font-size: 0.8rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
 
 .btn-small {
     background: var(--ink);

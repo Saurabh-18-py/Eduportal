@@ -4,9 +4,10 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.db.models import Avg, Count
 
-from .forms import SignupForm
-from .models import StudentProfile
+from .forms import SignupForm, ProfileForm, AvatarForm
+from .models import StudentProfile, AVATAR_CHOICES, AVATAR_EMOJI
 
 
 def signup_view(request):
@@ -69,3 +70,69 @@ def logout_view(request):
 def dashboard_view(request):
     profile = getattr(request.user, 'profile', None)
     return render(request, 'accounts/dashboard.html', {'profile': profile})
+
+
+@login_required
+def profile_view(request):
+    from mocktest.models import TestAttempt
+
+    profile = getattr(request.user, 'profile', None)
+
+    if request.method == 'POST' and 'save_profile' in request.POST:
+        form = ProfileForm(request.POST)
+        if form.is_valid():
+            request.user.first_name = form.cleaned_data['first_name']
+            request.user.email = form.cleaned_data['email']
+            request.user.save()
+            if profile:
+                profile.class_level = form.cleaned_data['class_level']
+                profile.phone = form.cleaned_data['phone']
+                profile.save()
+            messages.success(request, "Profile updated.")
+            return redirect('accounts:profile')
+    else:
+        form = ProfileForm(initial={
+            'first_name': request.user.first_name,
+            'email': request.user.email,
+            'class_level': profile.class_level if profile else None,
+            'phone': profile.phone if profile else '',
+        })
+
+    if request.method == 'POST' and 'save_avatar' in request.POST:
+        avatar_form = AvatarForm(request.POST)
+        if avatar_form.is_valid() and profile:
+            profile.avatar = avatar_form.cleaned_data['avatar']
+            profile.save()
+            messages.success(request, "Avatar updated.")
+            return redirect('accounts:profile')
+    else:
+        avatar_form = AvatarForm(initial={'avatar': profile.avatar if profile else 'fox'})
+
+    attempts = TestAttempt.objects.filter(
+        student=request.user, submitted_at__isnull=False
+    ).select_related('test__subject')
+
+    total_attempts = attempts.count()
+    avg_score_pct = 0
+    if total_attempts:
+        percentages = [
+            (a.score / a.total * 100) if a.total else 0 for a in attempts
+        ]
+        avg_score_pct = round(sum(percentages) / len(percentages), 1)
+
+    subject_stats = (
+        attempts.values('test__subject__name')
+        .annotate(attempts_count=Count('id'), avg_score=Avg('score'))
+        .order_by('test__subject__name')
+    )
+
+    return render(request, 'accounts/profile.html', {
+        'profile': profile,
+        'form': form,
+        'avatar_form': avatar_form,
+        'avatar_choices': AVATAR_CHOICES,
+        'avatar_emoji': AVATAR_EMOJI,
+        'total_attempts': total_attempts,
+        'avg_score_pct': avg_score_pct,
+        'subject_stats': subject_stats,
+    })

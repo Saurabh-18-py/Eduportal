@@ -53,7 +53,7 @@ Respond with ONLY a JSON array, no other text, no markdown code fences, no expla
             "model": GROQ_MODEL,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.7,
-            "max_tokens": 7500,
+            "max_tokens": 6000,
         },
         timeout=60,
     )
@@ -66,15 +66,7 @@ Respond with ONLY a JSON array, no other text, no markdown code fences, no expla
         raise MCQGenerationError(f"Groq API error ({response.status_code}): {response.text}")
 
     data = response.json()
-    message = data['choices'][0]['message']
-    text = (message.get('content') or '').strip()
-
-    if not text:
-        finish_reason = data['choices'][0].get('finish_reason', 'unknown')
-        raise MCQGenerationError(
-            f"AI returned an empty response (finish_reason: {finish_reason}). "
-            f"This usually means the model ran out of tokens while reasoning. Try again."
-        )
+    text = data['choices'][0]['message']['content'].strip()
 
     if text.startswith("```"):
         text = text.split("```")[1]

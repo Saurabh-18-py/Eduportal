@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load notes_extras %}
 {% block title %}{{ chapter.title }} - Notes{% endblock %}
 {% block content %}
 <span class="eyebrow">Notes</span>
@@ -7,7 +8,10 @@
     {% for note in notes %}
     <div class="list-item">
         <span>📄 {{ note.title }}</span>
-        <a href="{{ note.pdf_file.url }}" target="_blank" rel="noopener" class="btn-small">View PDF</a>
+        <span class="btn-group">
+            <a href="{% url 'notes:view_note_pdf' note.id %}" class="btn-small">View</a>
+            <a href="{{ note.pdf_file.url|cloudinary_download }}" class="btn-small btn-ghost" download>Download</a>
+        </span>
     </div>
     {% empty %}
     <p>No notes uploaded yet for this chapter.</p>

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load notes_extras %}
 {% block title %}{{ year }} Papers - Class {{ class_level }}{% endblock %}
 {% block content %}
 <span class="eyebrow">Class {{ class_level }} &middot; {{ year }}</span>
@@ -8,7 +9,10 @@
     {% for paper in papers %}
     <div class="list-item">
         <span>📄 {{ paper.subject.name }}{% if paper.set_label %} ({{ paper.set_label }}){% endif %}</span>
-        <a href="{{ paper.pdf_file.url }}" target="_blank" rel="noopener" class="btn-small">View PDF</a>
+        <span class="btn-group">
+            <a href="{% url 'notes:view_pyq_pdf' paper.id %}" class="btn-small">View</a>
+            <a href="{{ paper.pdf_file.url|cloudinary_download }}" class="btn-small btn-ghost" download>Download</a>
+        </span>
     </div>
     {% empty %}
     <p class="empty-note">No papers uploaded yet for {{ year }}. Check back soon.</p>

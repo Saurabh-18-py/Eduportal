@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load account_extras %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<span class="eyebrow">Account</span>
+<h1>My Profile</h1>
+
+<div class="profile-head">
+    <span class="avatar-badge avatar-badge-lg">{{ profile.avatar_emoji }}</span>
+    <div>
+        <p class="profile-name">{{ user.first_name|default:user.username }}</p>
+        <p class="profile-sub">@{{ user.username }}{% if profile %} &middot; {{ profile.get_class_level_display }}{% endif %}</p>
+    </div>
+</div>
+
+<h2 class="section-heading">Choose Your Avatar</h2>
+<form method="post" class="avatar-form">
+    {% csrf_token %}
+    <div class="avatar-picker">
+        {% for value, label in avatar_choices %}
+        <label class="avatar-option{% if avatar_form.avatar.value == value %} avatar-option-selected{% endif %}">
+            <input
+                type="radio"
+                name="avatar"
+                value="{{ value }}"
+                {% if avatar_form.avatar.value == value %}checked{% endif %}
+                onchange="this.form.requestSubmit(this.form.querySelector('[name=save_avatar]'))"
+            >
+            <span class="avatar-badge">{{ avatar_emoji|get_item:value }}</span>
+            <span class="avatar-label">{{ label }}</span>
+        </label>
+        {% endfor %}
+    </div>
+    <button type="submit" name="save_avatar" value="1" class="btn-small">Save Avatar</button>
+</form>
+
+<h2 class="section-heading">Your Details</h2>
+<form method="post" class="form">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <ul class="non-field-errors">
+            {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+    {% endif %}
+
+    <p>
+        {{ form.first_name.label_tag }}
+        {{ form.first_name }}
+    </p>
+    <p>
+        {{ form.email.label_tag }}
+        {{ form.email }}
+    </p>
+    <p>
+        {{ form.class_level.label_tag }}
+        {{ form.class_level }}
+    </p>
+    <p>
+        {{ form.phone.label_tag }}
+        {{ form.phone }}
+    </p>
+
+    <button type="submit" name="save_profile" value="1">Save Changes</button>
+</form>
+
+<div class="auth-links">
+    <a href="{% url 'accounts:password_change' %}">Change Password</a>
+</div>
+
+<h2 class="section-heading">Test Performance</h2>
+<div class="stats-grid">
+    <div class="stat-card">
+        <span class="stat-num">{{ total_attempts }}</span>
+        <span class="stat-label">Tests Attempted</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-num">{{ avg_score_pct }}%</span>
+        <span class="stat-label">Average Score</span>
+    </div>
+</div>
+
+{% if subject_stats %}
+<div class="list">
+    {% for row in subject_stats %}
+    <div class="list-item">
+        <span>{{ row.test__subject__name }}</span>
+        <span>{{ row.attempts_count }} attempt{{ row.attempts_count|pluralize }} &middot; avg {{ row.avg_score|floatformat:1 }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="empty-note">No tests attempted yet.</p>
+{% endif %}
+
+<p style="margin-top:16px;"><a href="{% url 'mocktest:my_attempts' %}" class="btn-small">View Full Test History</a></p>
+{% endblock %}

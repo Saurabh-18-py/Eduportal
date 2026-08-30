@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import CLASS_CHOICES
+from .models import CLASS_CHOICES, AVATAR_CHOICES
 
 
 class SignupForm(forms.Form):
@@ -23,3 +23,14 @@ class SignupForm(forms.Form):
         if password and confirm_password and password != confirm_password:
             raise forms.ValidationError("Passwords do not match.")
         return cleaned_data
+
+
+class ProfileForm(forms.Form):
+    first_name = forms.CharField(max_length=150, required=False, label="Name")
+    email = forms.EmailField(required=False)
+    class_level = forms.ChoiceField(choices=CLASS_CHOICES, label="Class")
+    phone = forms.CharField(max_length=15, required=False)
+
+
+class AvatarForm(forms.Form):
+    avatar = forms.ChoiceField(choices=AVATAR_CHOICES, widget=forms.RadioSelect)
