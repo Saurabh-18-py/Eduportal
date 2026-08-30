@@ -24,6 +24,7 @@
                 <span class="brand-mark">EP</span>
                 <span class="brand-text">EduPortal<br><small>CBSE STUDY &amp; EXAM HALL</small></span>
             </a>
+            <button type="button" class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('nav-open')" aria-label="Menu">&#9776;</button>
             <nav class="nav-links">
                 <a href="{% url 'home' %}">Home</a>
                 {% if user.is_authenticated %}

@@ -43,6 +43,7 @@ a { color: inherit; }
     align-items: center;
     flex-wrap: wrap;
     gap: 10px;
+    position: relative;
 }
 
 .brand {
@@ -667,3 +668,55 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--teal); outline-
     .hero h1 { font-size: 1.9rem; }
     .marksheet-head { flex-direction: column; align-items: flex-start; }
 }
+
+/* ---------- Compact mobile header ---------- */
+@media (max-width: 640px) {
+    .ticket-header-inner {
+        padding: 10px 14px;
+        flex-wrap: nowrap;
+        gap: 8px;
+    }
+
+    .brand-text { font-size: 0.98rem; }
+    .brand-text small { display: none; }
+    .brand-mark { padding: 4px 8px; font-size: 0.8rem; }
+
+    /* Hide the full nav row by default, show it as a dropdown */
+    .nav-links {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--ink);
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        padding: 10px 14px 14px;
+        display: none;
+        border-top: 1px solid rgba(255,255,255,0.12);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+        z-index: 40;
+    }
+
+    .nav-links.nav-open { display: flex; }
+
+    .nav-links a { font-size: 0.95rem; padding: 6px 0; width: 100%; }
+    .nav-id { width: 100%; box-sizing: border-box; }
+
+    .nav-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 6px;
+        color: var(--paper);
+        border: none;
+        flex-shrink: 0;
+        font-size: 1.1rem;
+    }
+}
+
+.nav-toggle { display: none; }
+
