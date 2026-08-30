@@ -11,7 +11,7 @@
 </div>
 
 <div class="pdf-embed-wrap">
-    <iframe src="{{ pdf_url }}" class="pdf-embed" title="{{ page_title }}"></iframe>
+    <iframe src="https://docs.google.com/viewer?url={{ pdf_url|urlencode }}&embedded=true" class="pdf-embed" title="{{ page_title }}"></iframe>
 </div>
 <p class="empty-note pdf-fallback-note">
     PDF not loading above? Use "Open in New Tab" or "Download" instead.
