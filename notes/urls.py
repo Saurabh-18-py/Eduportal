@@ -11,4 +11,5 @@ urlpatterns = [
     path('pyq/class/<int:class_level>/year/<int:year>/', views.pyq_subjects_view, name='pyq_subjects'),
     path('note/<int:note_id>/view/', views.view_note_pdf, name='view_note_pdf'),
     path('pyq-paper/<int:paper_id>/view/', views.view_pyq_pdf, name='view_pyq_pdf'),
+    path('upload/', views.bulk_upload_view, name='bulk_upload'),
 ]

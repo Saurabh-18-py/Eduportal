@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="/static/css/premium.css">
     <script>
         window.MathJax = {
             tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
@@ -29,11 +28,7 @@
                 {% if user.is_authenticated %}
                     <a href="{% url 'mocktest:my_attempts' %}">My Results</a>
                     <a href="{% url 'accounts:profile' %}" class="nav-id">
-                        {% if user.profile.avatar_image_url %}
-                            <img src="{{ user.profile.avatar_image_url }}" alt="Avatar" class="avatar-badge nav-avatar avatar-img">
-                        {% elif user.profile %}
-                            <span class="avatar-badge nav-avatar">{{ user.profile.avatar_emoji }}</span>
-                        {% endif %}
+                        {% if user.profile %}<span class="avatar-badge nav-avatar">{{ user.profile.avatar_emoji }}</span>{% endif %}
                         {{ user.username }}
                     </a>
                     <a href="{% url 'accounts:logout' %}">Logout</a>
@@ -54,40 +49,6 @@
         {% endif %}
         {% block content %}{% endblock %}
     </main>
-
-    <nav class="bottom-nav">
-        <a href="{% url 'home' %}" class="bottom-nav-item{% if request.path == '/' %} bottom-nav-active{% endif %}">
-            <span class="bottom-nav-icon">&#127968;</span>
-            <span class="bottom-nav-label">Home</span>
-        </a>
-        {% if user.is_authenticated %}
-            <a href="{% url 'mocktest:my_attempts' %}" class="bottom-nav-item">
-                <span class="bottom-nav-icon">&#127942;</span>
-                <span class="bottom-nav-label">Results</span>
-            </a>
-            <a href="{% url 'accounts:profile' %}" class="bottom-nav-item">
-                {% if user.profile.avatar_image_url %}
-                    <img src="{{ user.profile.avatar_image_url }}" alt="Avatar" class="bottom-nav-avatar">
-                {% else %}
-                    <span class="bottom-nav-icon">&#128100;</span>
-                {% endif %}
-                <span class="bottom-nav-label">Profile</span>
-            </a>
-            <a href="{% url 'accounts:logout' %}" class="bottom-nav-item">
-                <span class="bottom-nav-icon">&#8618;</span>
-                <span class="bottom-nav-label">Logout</span>
-            </a>
-        {% else %}
-            <a href="{% url 'accounts:login' %}" class="bottom-nav-item">
-                <span class="bottom-nav-icon">&#128100;</span>
-                <span class="bottom-nav-label">Login</span>
-            </a>
-            <a href="{% url 'accounts:signup' %}" class="bottom-nav-item">
-                <span class="bottom-nav-icon">&#10133;</span>
-                <span class="bottom-nav-label">Sign Up</span>
-            </a>
-        {% endif %}
-    </nav>
 
     <script>
         // Reusable show/hide password toggle.

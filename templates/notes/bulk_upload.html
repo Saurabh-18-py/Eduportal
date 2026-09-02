@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Bulk Upload{% endblock %}
+{% block content %}
+<h1>Bulk Upload</h1>
+<p>Select multiple PDFs at once — each one becomes a separate entry.</p>
+
+<div class="upload-tabs" style="margin: 1rem 0; display: flex; gap: 0.5rem;">
+    <a href="?tab=notes" class="{% if active_tab == 'notes' %}nav-cta{% endif %}"
+       style="padding: 0.5rem 1rem; border: 1px solid #ccc; border-radius: 6px; text-decoration: none;">
+        Notes
+    </a>
+    <a href="?tab=pyq" class="{% if active_tab == 'pyq' %}nav-cta{% endif %}"
+       style="padding: 0.5rem 1rem; border: 1px solid #ccc; border-radius: 6px; text-decoration: none;">
+        PYQ Papers
+    </a>
+</div>
+
+{% if active_tab == 'notes' %}
+<form method="post" enctype="multipart/form-data" class="form">
+    {% csrf_token %}
+    <input type="hidden" name="upload_type" value="notes">
+
+    {% if notes_form.non_field_errors %}
+        <ul class="non-field-errors">
+            {% for error in notes_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+    {% endif %}
+
+    <p>
+        {{ notes_form.class_level.label_tag }}
+        {{ notes_form.class_level }}
+        {% if notes_form.class_level.errors %}
+            <ul class="field-errors">{% for error in notes_form.class_level.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        {% endif %}
+    </p>
+
+    <p>
+        {{ notes_form.subject.label_tag }}
+        {{ notes_form.subject }}
+        {% if notes_form.subject.errors %}
+            <ul class="field-errors">{% for error in notes_form.subject.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        {% endif %}
+    </p>
+
+    <p>
+        {{ notes_form.pdf_files.label_tag }}
+        {{ notes_form.pdf_files }}
+        <small>{{ notes_form.pdf_files.help_text }}</small>
+        {% if notes_form.pdf_files.errors %}
+            <ul class="field-errors">{% for error in notes_form.pdf_files.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        {% endif %}
+    </p>
+
+    <button type="submit">Upload Notes</button>
+</form>
+
+{% else %}
+<form method="post" enctype="multipart/form-data" class="form">
+    {% csrf_token %}
+    <input type="hidden" name="upload_type" value="pyq">
+
+    {% if pyq_form.non_field_errors %}
+        <ul class="non-field-errors">
+            {% for error in pyq_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+    {% endif %}
+
+    <p>
+        {{ pyq_form.class_level.label_tag }}
+        {{ pyq_form.class_level }}
+        {% if pyq_form.class_level.errors %}
+            <ul class="field-errors">{% for error in pyq_form.class_level.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        {% endif %}
+    </p>
+
+    <p>
+        {{ pyq_form.subject.label_tag }}
+        {{ pyq_form.subject }}
+        {% if pyq_form.subject.errors %}
+            <ul class="field-errors">{% for error in pyq_form.subject.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        {% endif %}
+    </p>
+
+    <p>
+        {{ pyq_form.year.label_tag }}
+        {{ pyq_form.year }}
+        {% if pyq_form.year.errors %}
+            <ul class="field-errors">{% for error in pyq_form.year.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        {% endif %}
+    </p>
+
+    <p>
+        {{ pyq_form.set_label.label_tag }}
+        {{ pyq_form.set_label }}
+        <small>{{ pyq_form.set_label.help_text }}</small>
+        {% if pyq_form.set_label.errors %}
+            <ul class="field-errors">{% for error in pyq_form.set_label.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        {% endif %}
+    </p>
+
+    <p>
+        {{ pyq_form.pdf_files.label_tag }}
+        {{ pyq_form.pdf_files }}
+        <small>{{ pyq_form.pdf_files.help_text }}</small>
+        {% if pyq_form.pdf_files.errors %}
+            <ul class="field-errors">{% for error in pyq_form.pdf_files.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        {% endif %}
+    </p>
+
+    <button type="submit">Upload PYQ Papers</button>
+</form>
+{% endif %}
+{% endblock %}
