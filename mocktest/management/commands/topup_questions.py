@@ -24,11 +24,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--target', type=int, default=100, help='Target question count per test (default 100)')
-        parser.add_argument('--batch-size', type=int, default=20, help='Questions requested per API call (default 20)')
+        parser.add_argument('--batch-size', type=int, default=15, help='Questions requested per API call (default 15 - kept modest to fit under the 8000 tokens/minute cap)')
         parser.add_argument('--difficulty', default='hard', choices=['easy', 'medium', 'hard'], help='Question difficulty (default hard)')
         parser.add_argument('--class', dest='class_level', type=int, default=None, help='Limit to one class, e.g. 10 (default: all classes)')
         parser.add_argument('--subject', default=None, help='Limit to one subject name, e.g. "Science" (default: all subjects)')
-        parser.add_argument('--delay', type=int, default=20, help='Seconds to wait between API calls (default 20)')
+        parser.add_argument('--delay', type=int, default=25, help='Seconds to wait between API calls (default 25 - tuned to stay under 8000 tokens/minute)')
         parser.add_argument(
             '--min-remaining-tokens', type=int, default=6000,
             help='Stop the run once fewer than this many tokens remain for today (default 6000 - enough headroom for one more batch)'

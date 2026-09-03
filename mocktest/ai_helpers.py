@@ -23,6 +23,27 @@ def _parse_retry_after(error_text):
     return 20.0
 
 
+def _try_salvage_json_array(text):
+    """
+    If the response got cut off mid-array (hit max_tokens), try to recover
+    the questions that DID finish generating instead of throwing them all
+    away: trim back to the last fully-closed '}' and re-close the array.
+    """
+    last_brace = text.rfind('}')
+    if last_brace == -1:
+        return None
+    candidate = text[:last_brace + 1].rstrip()
+    if candidate.endswith(','):
+        candidate = candidate[:-1]
+    if not candidate.startswith('['):
+        return None
+    candidate += ']'
+    try:
+        return json.loads(candidate)
+    except json.JSONDecodeError:
+        return None
+
+
 def _request_mcqs_from_groq(api_key, subject_name, chapter, class_level, num_questions, difficulty):
     """
     Shared internals: calls Groq, parses the questions, and returns both the
@@ -38,7 +59,7 @@ def _request_mcqs_from_groq(api_key, subject_name, chapter, class_level, num_que
 
     prompt = f"""You are creating exam-style multiple choice practice questions for Indian CBSE Class {class_level} {subject_name}, chapter: "{chapter}".
 
-Generate {num_questions} multiple choice questions in the style of previous-year CBSE board exam questions for this chapter. Make them {difficulty_note}. Each question must have exactly 4 options with exactly one correct answer.
+Generate {num_questions} multiple choice questions in the style of previous-year CBSE board exam questions for this chapter. Make them {difficulty_note}. Each question must have exactly 4 DISTINCT options with exactly one correct answer. Keep each option short (avoid heavy LaTeX/markdown so the answer stays compact).
 
 Respond with ONLY a JSON array, no other text, no markdown code fences, no explanation. Format:
 [
@@ -59,7 +80,12 @@ Respond with ONLY a JSON array, no other text, no markdown code fences, no expla
             "model": GROQ_MODEL,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.7,
-            "max_tokens": 6000,
+            "max_tokens": 8000,
+            # GPT-OSS models default to "medium" reasoning effort, which can
+            # burn most of max_tokens on hidden reasoning before ever writing
+            # the JSON answer, causing truncated/empty responses. "low" keeps
+            # far more of the token budget for the actual output.
+            "reasoning_effort": "low",
         },
         timeout=60,
     )
@@ -83,13 +109,25 @@ Respond with ONLY a JSON array, no other text, no markdown code fences, no expla
     try:
         questions = json.loads(text)
     except json.JSONDecodeError as e:
-        raise MCQGenerationError(f"Could not parse AI response as JSON: {e}\nRaw response:\n{text[:500]}")
+        questions = _try_salvage_json_array(text)
+        if questions is None:
+            raise MCQGenerationError(f"Could not parse AI response as JSON: {e}\nRaw response:\n{text[:500]}")
 
+    valid_questions = []
     for q in questions:
-        if len(q.get('options', [])) != 4 or q.get('correct_answer') not in q.get('options', []):
-            raise MCQGenerationError(f"Malformed question from AI: {q}")
+        opts = q.get('options', [])
+        if (
+            isinstance(opts, list)
+            and len(opts) == 4
+            and len(set(opts)) == 4  # all 4 options must be genuinely distinct
+            and q.get('correct_answer') in opts
+        ):
+            valid_questions.append(q)
 
-    return questions, response.headers
+    if not valid_questions:
+        raise MCQGenerationError("AI response had no valid, well-formed questions after filtering.")
+
+    return valid_questions, response.headers
 
 
 def generate_mcqs_via_groq(api_key, subject_name, chapter, class_level, num_questions, difficulty):
