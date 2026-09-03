@@ -25,32 +25,43 @@ class MultipleFileField(forms.FileField):
 
 class BulkNoteUploadForm(forms.Form):
     """
-    Just pick Class + Subject, then drop in PDFs - works the same way for
-    every class (9-12). No need to pre-create Chapters: each PDF becomes
-    its own Chapter (named after the cleaned filename) under the chosen
-    Subject, with one Note inside it. If a Chapter with that exact name
-    already exists for the subject, the new PDF is added as another Note
-    under it instead of duplicating the chapter.
+    Pick Class + Subject + (optionally) an existing Chapter, then drop in PDFs.
+    If a Chapter is chosen, every uploaded PDF becomes a Note under that
+    exact chapter. If left blank, each PDF becomes its own new Chapter
+    (named after the cleaned filename) - matching an existing chapter of
+    that name under the subject instead of duplicating it.
     """
     class_level = forms.ChoiceField(choices=CLASS_CHOICES)
     subject = forms.ModelChoiceField(queryset=None)
+    chapter = forms.ModelChoiceField(
+        queryset=None,
+        required=False,
+        empty_label="-- Auto-create from filename --",
+        help_text="Pick an existing chapter to upload straight into it, or leave blank to auto-create one per PDF.",
+    )
     pdf_files = MultipleFileField(
-        help_text="Select multiple PDF files. Each file becomes its own chapter + note (named from the filename)."
+        help_text="Select multiple PDF files. Each file becomes its own note."
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        from .models import Subject
+        from .models import Subject, Chapter
         self.fields['subject'].queryset = Subject.objects.all()
+        self.fields['chapter'].queryset = Chapter.objects.all()
 
     def clean(self):
         cleaned_data = super().clean()
         class_level = cleaned_data.get('class_level')
         subject = cleaned_data.get('subject')
+        chapter = cleaned_data.get('chapter')
         if class_level and subject and str(subject.class_level) != str(class_level):
             raise ValidationError(
                 f'"{subject.name}" is a Class {subject.class_level} subject, not Class {class_level}. '
                 f'Pick a subject that matches the selected class.'
+            )
+        if chapter and subject and chapter.subject_id != subject.id:
+            raise ValidationError(
+                f'"{chapter.title}" does not belong to "{subject.name}". Pick a matching chapter.'
             )
         return cleaned_data
 

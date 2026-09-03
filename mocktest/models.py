@@ -1,6 +1,12 @@
+import datetime
+
 from django.db import models
 from django.contrib.auth.models import User
 from notes.models import Subject
+
+# How many questions a student sees per day, once a test has more than this
+# many questions banked. The rest rotate in on later days.
+DAILY_QUESTION_COUNT = 10
 
 
 class Test(models.Model):
@@ -15,6 +21,35 @@ class Test(models.Model):
     @property
     def total_questions(self):
         return self.questions.count()
+
+    @property
+    def daily_question_count(self):
+        """How many questions actually show today (for display, e.g. in the test list)."""
+        return min(DAILY_QUESTION_COUNT, self.total_questions)
+
+    def get_daily_questions(self):
+        """
+        Today's rotating subset of questions - same set for every student on a
+        given day, cycling through the full question bank over multiple days
+        so a 100-question bank shows a fresh batch of 10 roughly every 10 days.
+        If the test doesn't have more than DAILY_QUESTION_COUNT questions yet,
+        all of them are shown (nothing to rotate).
+        """
+        all_questions = list(
+            self.questions.prefetch_related('choices').order_by('order')
+        )
+        total = len(all_questions)
+        if total <= DAILY_QUESTION_COUNT:
+            return all_questions
+
+        num_buckets = (total + DAILY_QUESTION_COUNT - 1) // DAILY_QUESTION_COUNT
+        day_index = datetime.date.today().toordinal()
+        bucket = day_index % num_buckets
+        start = bucket * DAILY_QUESTION_COUNT
+        selected = all_questions[start:start + DAILY_QUESTION_COUNT]
+        if len(selected) < DAILY_QUESTION_COUNT:
+            selected += all_questions[:DAILY_QUESTION_COUNT - len(selected)]
+        return selected
 
 
 class Question(models.Model):

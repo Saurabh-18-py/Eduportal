@@ -4,6 +4,9 @@
 <h1>Bulk Upload</h1>
 <p>Select multiple PDFs at once — each one becomes a separate entry.</p>
 
+{{ subjects_data|json_script:"subjects-data" }}
+{{ chapters_data|json_script:"chapters-data" }}
+
 <div class="upload-tabs" style="margin: 1rem 0; display: flex; gap: 0.5rem;">
     <a href="?tab=notes" class="{% if active_tab == 'notes' %}nav-cta{% endif %}"
        style="padding: 0.5rem 1rem; border: 1px solid #ccc; border-radius: 6px; text-decoration: none;">
@@ -39,6 +42,15 @@
         {{ notes_form.subject }}
         {% if notes_form.subject.errors %}
             <ul class="field-errors">{% for error in notes_form.subject.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        {% endif %}
+    </p>
+
+    <p>
+        {{ notes_form.chapter.label_tag }}
+        {{ notes_form.chapter }}
+        <small>{{ notes_form.chapter.help_text }}</small>
+        {% if notes_form.chapter.errors %}
+            <ul class="field-errors">{% for error in notes_form.chapter.errors %}<li>{{ error }}</li>{% endfor %}</ul>
         {% endif %}
     </p>
 
@@ -110,4 +122,80 @@
     <button type="submit">Upload PYQ Papers</button>
 </form>
 {% endif %}
+
+<script>
+(function () {
+    var subjects = JSON.parse(document.getElementById('subjects-data').textContent);
+    var chapters = JSON.parse(document.getElementById('chapters-data').textContent);
+
+    function rebuildSelect(select, options, selectedValue, placeholder) {
+        var current = selectedValue !== undefined ? selectedValue : select.value;
+        select.innerHTML = '';
+        if (placeholder) {
+            var placeholderOpt = document.createElement('option');
+            placeholderOpt.value = '';
+            placeholderOpt.textContent = placeholder;
+            select.appendChild(placeholderOpt);
+        }
+        options.forEach(function (opt) {
+            var el = document.createElement('option');
+            el.value = opt.value;
+            el.textContent = opt.label;
+            select.appendChild(el);
+        });
+        if (current && Array.prototype.some.call(select.options, function (o) { return o.value === String(current); })) {
+            select.value = current;
+        }
+    }
+
+    function wireClassToSubject(prefix) {
+        var classSelect = document.getElementById('id_' + prefix + '-class_level');
+        var subjectSelect = document.getElementById('id_' + prefix + '-subject');
+        if (!classSelect || !subjectSelect) return;
+
+        function refreshSubjects(preserveSelection) {
+            var classLevel = classSelect.value;
+            var filtered = subjects
+                .filter(function (s) { return String(s.class_level) === String(classLevel); })
+                .map(function (s) { return { value: s.id, label: s.name }; });
+            rebuildSelect(subjectSelect, filtered, preserveSelection ? subjectSelect.dataset.selected : undefined, '---------');
+        }
+
+        classSelect.addEventListener('change', function () { refreshSubjects(false); });
+        refreshSubjects(true);
+        return subjectSelect;
+    }
+
+    function wireSubjectToChapter(subjectSelect) {
+        var chapterSelect = document.getElementById('id_notes-chapter');
+        if (!subjectSelect || !chapterSelect) return;
+
+        function refreshChapters(preserveSelection) {
+            var subjectId = subjectSelect.value;
+            var filtered = chapters
+                .filter(function (c) { return String(c.subject_id) === String(subjectId); })
+                .map(function (c) { return { value: c.id, label: c.title }; });
+            rebuildSelect(chapterSelect, filtered, preserveSelection ? chapterSelect.dataset.selected : undefined, '-- Auto-create from filename --');
+        }
+
+        subjectSelect.dataset.selected = subjectSelect.value;
+        subjectSelect.addEventListener('change', function () {
+            refreshChapters(false);
+        });
+        refreshChapters(true);
+    }
+
+    // Remember the server-rendered selected values before we rebuild the <select> options
+    ['notes', 'pyq'].forEach(function (prefix) {
+        var subjectSelect = document.getElementById('id_' + prefix + '-subject');
+        if (subjectSelect) subjectSelect.dataset.selected = subjectSelect.value;
+    });
+    var notesChapterSelect = document.getElementById('id_notes-chapter');
+    if (notesChapterSelect) notesChapterSelect.dataset.selected = notesChapterSelect.value;
+
+    var notesSubjectSelect = wireClassToSubject('notes');
+    wireClassToSubject('pyq');
+    wireSubjectToChapter(notesSubjectSelect);
+})();
+</script>
 {% endblock %}

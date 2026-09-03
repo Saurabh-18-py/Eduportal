@@ -6,7 +6,7 @@
 <div class="list">
     {% for test in tests %}
     <div class="list-item">
-        <span>{{ test.title }} ({{ test.total_questions }} questions, {{ test.duration_minutes }} min)</span>
+        <span>{{ test.title }} ({{ test.daily_question_count }} questions today, {{ test.duration_minutes }} min)</span>
         {% if user.is_authenticated %}
             <a href="{% url 'mocktest:take_test' test.id %}" class="btn-small">Start Test</a>
         {% else %}

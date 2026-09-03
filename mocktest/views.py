@@ -19,14 +19,14 @@ def test_list_view(request, subject_id):
 @login_required
 def take_test_view(request, test_id):
     test = get_object_or_404(Test, id=test_id)
-    questions = test.questions.prefetch_related('choices').all()
+    questions = test.get_daily_questions()
 
     if request.method == 'POST':
         attempt = TestAttempt.objects.create(
             student=request.user,
             test=test,
             submitted_at=timezone.now(),
-            total=questions.count(),
+            total=len(questions),
         )
 
         score = 0

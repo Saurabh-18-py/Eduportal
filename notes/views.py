@@ -111,31 +111,43 @@ def bulk_upload_view(request):
     if request.method == 'POST':
         if active_tab == 'notes' and notes_form.is_valid():
             subject = notes_form.cleaned_data['subject']
+            chosen_chapter = notes_form.cleaned_data.get('chapter')
             files = notes_form.cleaned_data['pdf_files']
             created = 0
             chapters_touched = set()
             with transaction.atomic():
-                # Next order number for a new chapter under this subject,
-                # so auto-created chapters land after any existing ones.
-                next_order = (
-                    Chapter.objects.filter(subject=subject).count() + 1
-                )
-                for f in files:
-                    title = _clean_title_from_filename(f.name)
-                    chapter, chapter_created = Chapter.objects.get_or_create(
-                        subject=subject,
-                        title=title,
-                        defaults={'order': next_order},
+                if chosen_chapter:
+                    for f in files:
+                        title = _clean_title_from_filename(f.name)
+                        Note.objects.create(
+                            chapter=chosen_chapter,
+                            title=title,
+                            pdf_file=f,
+                        )
+                        created += 1
+                    chapters_touched.add(chosen_chapter.title)
+                else:
+                    # Next order number for a new chapter under this subject,
+                    # so auto-created chapters land after any existing ones.
+                    next_order = (
+                        Chapter.objects.filter(subject=subject).count() + 1
                     )
-                    if chapter_created:
-                        next_order += 1
-                    Note.objects.create(
-                        chapter=chapter,
-                        title=title,
-                        pdf_file=f,
-                    )
-                    created += 1
-                    chapters_touched.add(chapter.title)
+                    for f in files:
+                        title = _clean_title_from_filename(f.name)
+                        chapter, chapter_created = Chapter.objects.get_or_create(
+                            subject=subject,
+                            title=title,
+                            defaults={'order': next_order},
+                        )
+                        if chapter_created:
+                            next_order += 1
+                        Note.objects.create(
+                            chapter=chapter,
+                            title=title,
+                            pdf_file=f,
+                        )
+                        created += 1
+                        chapters_touched.add(chapter.title)
             messages.success(
                 request,
                 f"Uploaded {created} note(s) to {subject} "
@@ -162,8 +174,15 @@ def bulk_upload_view(request):
             messages.success(request, f"Uploaded {created} PYQ paper(s).")
             return redirect('notes:bulk_upload')
 
+    subjects_data = list(Subject.objects.values('id', 'name', 'class_level'))
+    chapters_data = list(
+        Chapter.objects.order_by('order', 'id').values('id', 'title', 'subject_id')
+    )
+
     return render(request, 'notes/bulk_upload.html', {
         'notes_form': notes_form,
         'pyq_form': pyq_form,
         'active_tab': active_tab,
+        'subjects_data': subjects_data,
+        'chapters_data': chapters_data,
     })
