@@ -1,4 +1,3 @@
-import os
 import time
 
 from django.core.management.base import BaseCommand, CommandError
@@ -6,7 +5,8 @@ from django.db import transaction
 
 from mocktest.models import Test, Question, Choice
 from mocktest.ai_helpers import (
-    generate_mcqs_batch_with_meta,
+    load_api_keys,
+    generate_mcqs_batch_with_rotation,
     MCQGenerationError,
     RateLimitError,
 )
@@ -17,8 +17,9 @@ class Command(BaseCommand):
         "Top up every existing mock test toward a target question count, generating "
         "extra MCQs in small batches via Groq AI and appending them to each test's "
         "question bank. Safe to stop (Ctrl+C) and re-run any time - it always "
-        "resumes from the first test that isn't at the target yet, and stops itself "
-        "gracefully once today's Groq quota is nearly used up. Just re-run the same "
+        "resumes from the first test that isn't at the target yet. Supports rotating "
+        "across multiple Groq API keys (set GROQ_API_KEYS, comma-separated) and only "
+        "stops once every configured key is out of quota. Just re-run the same "
         "command again later (e.g. once a day) to keep going."
     )
 
@@ -31,17 +32,22 @@ class Command(BaseCommand):
         parser.add_argument('--delay', type=int, default=25, help='Seconds to wait between API calls (default 25 - tuned to stay under 8000 tokens/minute)')
         parser.add_argument(
             '--min-remaining-tokens', type=int, default=6000,
-            help='Stop the run once fewer than this many tokens remain for today (default 6000 - enough headroom for one more batch)'
+            help='Proactively switch to the next API key once fewer than this many tokens remain on the current one (default 6000)'
         )
 
     def handle(self, *args, **options):
-        api_key = os.environ.get('GROQ_API_KEY')
-        if not api_key:
+        api_keys = load_api_keys()
+        if not api_keys:
             raise CommandError(
-                "GROQ_API_KEY environment variable not set.\n"
+                "No Groq API key found.\n"
                 "In Termux, run:\n"
                 "  export GROQ_API_KEY='your-key-here'\n"
+                "Or, to rotate across multiple accounts once one hits its limit:\n"
+                "  export GROQ_API_KEYS='key_one,key_two,key_three'\n"
             )
+        if len(api_keys) > 1:
+            self.stdout.write(f"Using {len(api_keys)} API keys, rotating as needed.")
+        key_index = [0]
 
         target = options['target']
         batch_size = options['batch_size']
@@ -60,6 +66,11 @@ class Command(BaseCommand):
         total_added = 0
         tests_completed = 0
         tests_total = tests.count()
+
+        def on_rotate(old_idx, new_idx):
+            self.stdout.write(self.style.WARNING(
+                f"  Key #{old_idx + 1}/{len(api_keys)} is rate-limited, switching to key #{new_idx + 1}..."
+            ))
 
         for test in tests:
             current_count = test.questions.count()
@@ -80,15 +91,15 @@ class Command(BaseCommand):
                 )
 
                 try:
-                    questions_data, meta = generate_mcqs_batch_with_meta(
-                        api_key, test.subject.name, topic, test.subject.class_level,
-                        this_batch, difficulty,
+                    questions_data, meta = generate_mcqs_batch_with_rotation(
+                        api_keys, key_index, test.subject.name, topic, test.subject.class_level,
+                        this_batch, difficulty, on_rotate=on_rotate,
                     )
                 except RateLimitError as e:
                     self.stdout.write(self.style.WARNING(
-                        f"\nRate limited by Groq. Stopping here for now.\n"
-                        f"Re-run this exact same command later (e.g. tomorrow) to continue "
-                        f"- it will pick up right where it left off.\n({e})"
+                        f"\nAll {len(api_keys)} API key(s) are rate-limited. Stopping here for now.\n"
+                        f"Re-run this exact same command later (e.g. tomorrow, or add another key "
+                        f"to GROQ_API_KEYS) to continue - it will pick up right where it left off.\n({e})"
                     ))
                     self._summary(total_added, tests_completed, tests_total)
                     return
@@ -117,7 +128,14 @@ class Command(BaseCommand):
                 current_count = test.questions.count()
 
                 remaining_tokens = meta.get('remaining_tokens')
-                if remaining_tokens is not None and remaining_tokens < min_remaining:
+                if remaining_tokens is not None and remaining_tokens < min_remaining and len(api_keys) > 1:
+                    old_idx = key_index[0]
+                    key_index[0] = (key_index[0] + 1) % len(api_keys)
+                    self.stdout.write(
+                        f"  Key #{old_idx + 1} is running low (~{remaining_tokens} tokens left) - "
+                        f"proactively switching to key #{key_index[0] + 1} for the next batch."
+                    )
+                elif remaining_tokens is not None and remaining_tokens < min_remaining:
                     self.stdout.write(self.style.WARNING(
                         f"\nOnly ~{remaining_tokens} tokens left for today - stopping here "
                         f"before hitting the hard limit.\n"

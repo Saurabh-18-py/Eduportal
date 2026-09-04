@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import requests
 
@@ -14,6 +15,20 @@ class RateLimitError(MCQGenerationError):
     def __init__(self, message, retry_after):
         super().__init__(message)
         self.retry_after = retry_after
+
+
+def load_api_keys():
+    """
+    Loads one or more Groq API keys. Set GROQ_API_KEYS as a comma-separated
+    list to rotate across multiple accounts once one hits its rate limit
+    (e.g. "key_one,key_two"). Falls back to a single GROQ_API_KEY if that's
+    all that's set.
+    """
+    multi = os.environ.get('GROQ_API_KEYS')
+    if multi:
+        return [k.strip() for k in multi.split(',') if k.strip()]
+    single = os.environ.get('GROQ_API_KEY')
+    return [single] if single else []
 
 
 def _parse_retry_after(error_text):
@@ -158,3 +173,36 @@ def generate_mcqs_batch_with_meta(api_key, subject_name, chapter, class_level, n
         'remaining_requests': _safe_int(headers.get('x-ratelimit-remaining-requests')),
     }
     return questions, meta
+
+
+def generate_mcqs_batch_with_rotation(api_keys, key_index, subject_name, chapter, class_level, num_questions, difficulty, on_rotate=None):
+    """
+    Like generate_mcqs_batch_with_meta, but tries multiple API keys: starts
+    from api_keys[key_index[0]] and, on a RateLimitError, rotates to the next
+    key and retries the SAME request, until one succeeds or every key has
+    been tried. key_index is a single-item list used as a shared "cursor" so
+    later calls resume from whichever key last worked (instead of resetting
+    to key 0 and re-triggering its rate limit every time).
+
+    on_rotate(old_index, new_index), if given, is called whenever a key gets
+    skipped, so the caller can log it. Raises the last RateLimitError only
+    once every key has failed.
+    """
+    n = len(api_keys)
+    if n == 0:
+        raise MCQGenerationError("No Groq API key configured (set GROQ_API_KEY or GROQ_API_KEYS).")
+
+    last_error = None
+    for attempt in range(n):
+        idx = (key_index[0] + attempt) % n
+        try:
+            questions, meta = generate_mcqs_batch_with_meta(
+                api_keys[idx], subject_name, chapter, class_level, num_questions, difficulty
+            )
+            key_index[0] = idx
+            return questions, meta
+        except RateLimitError as e:
+            last_error = e
+            if on_rotate:
+                on_rotate(idx, (idx + 1) % n)
+    raise last_error
