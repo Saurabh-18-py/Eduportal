@@ -208,3 +208,116 @@ def generate_mcqs_batch_with_rotation(api_keys, key_index, subject_name, chapter
             if on_rotate:
                 on_rotate(idx, (idx + 1) % n)
     raise last_error
+
+
+def _request_audit_from_groq(api_key, subject_name, chapter, class_level, questions):
+    """
+    Asks Groq to judge, for each question TEXT (options aren't needed for
+    this and would just cost extra tokens), whether it fits the Class
+    {class_level} syllabus depth for this chapter or actually leaks in
+    concepts from a higher class. This is classification, not generation -
+    much cheaper per call than writing new questions.
+
+    Returns (results, headers) where results is a list of
+    {'in_syllabus': bool, 'reason': str}, same order/length as `questions`.
+    """
+    numbered = "\n".join(f"{i + 1}. {q}" for i, q in enumerate(questions))
+
+    prompt = f"""You are checking whether practice questions match the depth of the official CBSE NCERT Class {class_level} syllabus for {subject_name}, chapter "{chapter}".
+
+For EACH question below, decide if it fits within Class {class_level}'s syllabus depth for this chapter, or if it actually requires concepts/formulas/terminology that only appear in a HIGHER class (e.g. a Class 9-10 question using Class 11-12 ideas like titration equivalence points, conjugate acid-base pairs, calculus, or biology terms like operon/codon/Krebs cycle).
+
+Questions:
+{numbered}
+
+Respond with ONLY a JSON array of exactly {len(questions)} objects, in the same order as the questions, no other text, no markdown fences:
+[
+  {{"in_syllabus": true, "reason": ""}},
+  {{"in_syllabus": false, "reason": "short reason why it's out of syllabus"}}
+]"""
+
+    response = requests.post(
+        GROQ_API_URL,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": GROQ_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.2,
+            "max_tokens": 4000,
+            "reasoning_effort": "low",
+        },
+        timeout=60,
+    )
+
+    if response.status_code == 429:
+        retry_after = _parse_retry_after(response.text)
+        raise RateLimitError(f"Rate limited: {response.text}", retry_after)
+
+    if response.status_code != 200:
+        raise MCQGenerationError(f"Groq API error ({response.status_code}): {response.text}")
+
+    data = response.json()
+    text = data['choices'][0]['message']['content'].strip()
+
+    if text.startswith("```"):
+        text = text.split("```")[1]
+        if text.startswith("json"):
+            text = text[4:]
+        text = text.strip()
+
+    try:
+        results = json.loads(text)
+    except json.JSONDecodeError as e:
+        results = _try_salvage_json_array(text)
+        if results is None:
+            raise MCQGenerationError(f"Could not parse audit response as JSON: {e}\nRaw response:\n{text[:500]}")
+
+    # Defensive normalization: if the AI returned fewer/malformed entries,
+    # default the missing ones to "keep" (in_syllabus=True) rather than
+    # risk auto-deleting a perfectly fine question due to a parsing hiccup.
+    normalized = []
+    for i in range(len(questions)):
+        entry = results[i] if i < len(results) else None
+        if isinstance(entry, dict) and 'in_syllabus' in entry:
+            normalized.append({
+                'in_syllabus': bool(entry['in_syllabus']),
+                'reason': entry.get('reason', ''),
+            })
+        else:
+            normalized.append({'in_syllabus': True, 'reason': '(unparsed - kept by default)'})
+
+    return normalized, response.headers
+
+
+def audit_questions_batch_with_meta(api_key, subject_name, chapter, class_level, questions):
+    results, headers = _request_audit_from_groq(api_key, subject_name, chapter, class_level, questions)
+    meta = {
+        'remaining_tokens': _safe_int(headers.get('x-ratelimit-remaining-tokens')),
+        'remaining_requests': _safe_int(headers.get('x-ratelimit-remaining-requests')),
+    }
+    return results, meta
+
+
+def audit_questions_batch_with_rotation(api_keys, key_index, subject_name, chapter, class_level, questions, on_rotate=None):
+    """Same key-rotation pattern as generate_mcqs_batch_with_rotation, but for the audit call."""
+    n = len(api_keys)
+    if n == 0:
+        raise MCQGenerationError("No Groq API key configured (set GROQ_API_KEY or GROQ_API_KEYS).")
+
+    last_error = None
+    for attempt in range(n):
+        idx = (key_index[0] + attempt) % n
+        try:
+            results, meta = audit_questions_batch_with_meta(
+                api_keys[idx], subject_name, chapter, class_level, questions
+            )
+            key_index[0] = idx
+            return results, meta
+        except RateLimitError as e:
+            last_error = e
+            if on_rotate:
+                on_rotate(idx, (idx + 1) % n)
+    raise last_error

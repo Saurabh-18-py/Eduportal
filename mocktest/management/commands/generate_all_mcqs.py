@@ -159,7 +159,7 @@ class Command(BaseCommand):
         parser.add_argument('--class', dest='class_level', type=int, required=True, help='Class level: currently 10 and 11 are available')
         parser.add_argument('--subject', default=None, help='Limit to one subject, e.g. "Science" (default: all subjects for the class)')
         parser.add_argument('--num', type=int, default=10, help='Number of MCQs per chapter (default 10)')
-        parser.add_argument('--difficulty', default='hard', choices=['easy', 'medium', 'hard'], help='Question difficulty (default: hard)')
+        parser.add_argument('--difficulty', default='medium', choices=['easy', 'medium', 'hard'], help='Question difficulty (default: medium)')
         parser.add_argument('--delay', type=int, default=20, help='Seconds to wait between chapters, to stay within free-tier rate limits (default 20)')
         parser.add_argument('--skip-existing', action='store_true', default=True, help='Skip chapters that already have a test with the same title (default: on)')
 
