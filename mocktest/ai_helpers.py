@@ -76,6 +76,8 @@ def _request_mcqs_from_groq(api_key, subject_name, chapter, class_level, num_que
 
 Generate {num_questions} multiple choice questions in the style of previous-year CBSE board exam questions for this chapter. Make them {difficulty_note}. Each question must have exactly 4 DISTINCT options with exactly one correct answer. Keep each option short (avoid heavy LaTeX/markdown so the answer stays compact).
 
+IMPORTANT - stay strictly within the depth of the official CBSE NCERT Class {class_level} syllabus for this exact chapter. "Hard" means tricky and thought-provoking WITHIN that grade's syllabus (e.g. multi-step reasoning, common misconceptions, applying a concept in a new context) - it does NOT mean borrowing concepts, formulas, or terminology from a higher class. For example, in Class 9-10 Acids/Bases/Salts, do NOT bring in titration equivalence-point calculations, conjugate acid-base pairs, or ionic equilibrium - those belong to Class 11-12 and would be out of syllabus here.
+
 Respond with ONLY a JSON array, no other text, no markdown code fences, no explanation. Format:
 [
   {{

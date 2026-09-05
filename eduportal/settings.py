@@ -119,7 +119,7 @@ else:
 # compresses and serves static files at runtime instead. This avoids
 # collectstatic crashing on missing files referenced by third-party
 # packages (Django admin icons, cloudinary widget assets, etc.).
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 WHITENOISE_USE_FINDERS = True
 
 MEDIA_URL = '/media/'

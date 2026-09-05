@@ -3,15 +3,26 @@ import os
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.contrib import messages
+from django.core.cache import cache
 from .models import Subject, Chapter, Note, PYQPaper
 from django.db import transaction
 from .utils import cloudinary_attachment_url
 from .forms import BulkNoteUploadForm, BulkPYQUploadForm
 from .decorators import uploader_required
 
+# How long the rarely-changing subject/chapter lists stay cached. This is a
+# low-level data cache (not a full-page cache), so each user still gets their
+# own correct navbar (logged in / logged out, their avatar, etc.) - only the
+# underlying DB query result is reused, cutting repeat round-trips to Supabase.
+LIST_CACHE_SECONDS = 60 * 30
+
 
 def class_subjects_view(request, class_level):
-    subjects = Subject.objects.filter(class_level=class_level)
+    cache_key = f'subjects:class:{class_level}'
+    subjects = cache.get(cache_key)
+    if subjects is None:
+        subjects = list(Subject.objects.filter(class_level=class_level))
+        cache.set(cache_key, subjects, LIST_CACHE_SECONDS)
     return render(request, 'notes/subjects.html', {
         'class_level': class_level,
         'subjects': subjects,
@@ -19,8 +30,14 @@ def class_subjects_view(request, class_level):
 
 
 def subject_chapters_view(request, subject_id):
-    subject = get_object_or_404(Subject, id=subject_id)
-    chapters = subject.chapters.all()
+    cache_key = f'chapters:subject:{subject_id}'
+    cached = cache.get(cache_key)
+    if cached is None:
+        subject = get_object_or_404(Subject, id=subject_id)
+        chapters = list(subject.chapters.all())
+        cache.set(cache_key, (subject, chapters), LIST_CACHE_SECONDS)
+    else:
+        subject, chapters = cached
     return render(request, 'notes/chapters.html', {
         'subject': subject,
         'chapters': chapters,
@@ -153,6 +170,7 @@ def bulk_upload_view(request):
                 f"Uploaded {created} note(s) to {subject} "
                 f"({len(chapters_touched)} chapter(s))."
             )
+            cache.delete(f'chapters:subject:{subject.id}')
             return redirect('notes:bulk_upload')
 
         elif active_tab == 'pyq' and pyq_form.is_valid():

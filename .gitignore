@@ -7,3 +7,5 @@ staticfiles/
 media/*
 !media/.gitkeep
 .env
+run_topup.sh
+run_topup.sh

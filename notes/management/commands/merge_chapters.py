@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
@@ -61,3 +62,4 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f"\nDone. Moved {total_moved} note(s) into '{keep_chapter.title}' (id={keep_chapter.id})."
         ))
+        cache.delete(f'chapters:subject:{keep_chapter.subject_id}')
