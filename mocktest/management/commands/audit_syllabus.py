@@ -8,6 +8,7 @@ from mocktest.ai_helpers import (
     audit_questions_batch_with_rotation,
     MCQGenerationError,
     RateLimitError,
+    InvalidAPIKeyError,
 )
 
 
@@ -82,9 +83,9 @@ class Command(BaseCommand):
                         api_keys, key_index, test.subject.name, topic, test.subject.class_level,
                         [q.text for q in chunk], on_rotate=on_rotate,
                     )
-                except RateLimitError as e:
+                except (RateLimitError, InvalidAPIKeyError) as e:
                     self.stdout.write(self.style.WARNING(
-                        f"\nAll {len(api_keys)} API key(s) are rate-limited. Stopping here.\n"
+                        f"\nAll {len(api_keys)} API key(s) are unusable right now (rate-limited or invalid). Stopping here.\n"
                         f"Re-run with --start-id {last_id_seen} to resume from here.\n({e})"
                     ))
                     self._summary(total_checked, total_flagged, total_deleted)

@@ -9,6 +9,7 @@ from mocktest.ai_helpers import (
     generate_mcqs_batch_with_rotation,
     MCQGenerationError,
     RateLimitError,
+    InvalidAPIKeyError,
 )
 
 
@@ -95,11 +96,11 @@ class Command(BaseCommand):
                         api_keys, key_index, test.subject.name, topic, test.subject.class_level,
                         this_batch, difficulty, on_rotate=on_rotate,
                     )
-                except RateLimitError as e:
+                except (RateLimitError, InvalidAPIKeyError) as e:
                     self.stdout.write(self.style.WARNING(
-                        f"\nAll {len(api_keys)} API key(s) are rate-limited. Stopping here for now.\n"
-                        f"Re-run this exact same command later (e.g. tomorrow, or add another key "
-                        f"to GROQ_API_KEYS) to continue - it will pick up right where it left off.\n({e})"
+                        f"\nAll {len(api_keys)} API key(s) are unusable right now (rate-limited or invalid). Stopping here for now.\n"
+                        f"Re-run this exact same command later (e.g. tomorrow, or after fixing GROQ_API_KEYS) "
+                        f"to continue - it will pick up right where it left off.\n({e})"
                     ))
                     self._summary(total_added, tests_completed, tests_total)
                     return

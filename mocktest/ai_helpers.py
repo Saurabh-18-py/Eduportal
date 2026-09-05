@@ -17,6 +17,11 @@ class RateLimitError(MCQGenerationError):
         self.retry_after = retry_after
 
 
+class InvalidAPIKeyError(MCQGenerationError):
+    """Raised on a 401 - this specific key is bad/revoked. Also triggers rotation to the next key."""
+    pass
+
+
 def load_api_keys():
     """
     Loads one or more Groq API keys. Set GROQ_API_KEYS as a comma-separated
@@ -111,6 +116,9 @@ Respond with ONLY a JSON array, no other text, no markdown code fences, no expla
         retry_after = _parse_retry_after(response.text)
         raise RateLimitError(f"Rate limited: {response.text}", retry_after)
 
+    if response.status_code == 401:
+        raise InvalidAPIKeyError(f"Invalid/revoked API key: {response.text}")
+
     if response.status_code != 200:
         raise MCQGenerationError(f"Groq API error ({response.status_code}): {response.text}")
 
@@ -203,7 +211,7 @@ def generate_mcqs_batch_with_rotation(api_keys, key_index, subject_name, chapter
             )
             key_index[0] = idx
             return questions, meta
-        except RateLimitError as e:
+        except (RateLimitError, InvalidAPIKeyError) as e:
             last_error = e
             if on_rotate:
                 on_rotate(idx, (idx + 1) % n)
@@ -255,6 +263,9 @@ Respond with ONLY a JSON array of exactly {len(questions)} objects, in the same 
     if response.status_code == 429:
         retry_after = _parse_retry_after(response.text)
         raise RateLimitError(f"Rate limited: {response.text}", retry_after)
+
+    if response.status_code == 401:
+        raise InvalidAPIKeyError(f"Invalid/revoked API key: {response.text}")
 
     if response.status_code != 200:
         raise MCQGenerationError(f"Groq API error ({response.status_code}): {response.text}")
@@ -316,7 +327,7 @@ def audit_questions_batch_with_rotation(api_keys, key_index, subject_name, chapt
             )
             key_index[0] = idx
             return results, meta
-        except RateLimitError as e:
+        except (RateLimitError, InvalidAPIKeyError) as e:
             last_error = e
             if on_rotate:
                 on_rotate(idx, (idx + 1) % n)
