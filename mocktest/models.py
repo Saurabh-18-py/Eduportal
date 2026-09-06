@@ -1,12 +1,13 @@
-import datetime
+import math
 
 from django.db import models
 from django.contrib.auth.models import User
 from notes.models import Subject
 
-# How many questions a student sees per day, once a test has more than this
-# many questions banked. The rest rotate in on later days.
-DAILY_QUESTION_COUNT = 10
+# Each 10-question block of a chapter's question bank becomes its own
+# selectable "Test N" - so a 100-question chapter shows as Test 1 through
+# Test 10, all available at once (no daily waiting).
+QUESTIONS_PER_TEST = 10
 
 
 class Test(models.Model):
@@ -23,33 +24,25 @@ class Test(models.Model):
         return self.questions.count()
 
     @property
-    def daily_question_count(self):
-        """How many questions actually show today (for display, e.g. in the test list)."""
-        return min(DAILY_QUESTION_COUNT, self.total_questions)
+    def num_slices(self):
+        """How many separate 'Test N' entries this chapter's question bank splits into."""
+        total = self.total_questions
+        if total == 0:
+            return 0
+        return math.ceil(total / QUESTIONS_PER_TEST)
 
-    def get_daily_questions(self):
+    def get_slice_questions(self, slice_number):
         """
-        Today's rotating subset of questions - same set for every student on a
-        given day, cycling through the full question bank over multiple days
-        so a 100-question bank shows a fresh batch of 10 roughly every 10 days.
-        If the test doesn't have more than DAILY_QUESTION_COUNT questions yet,
-        all of them are shown (nothing to rotate).
+        Returns the fixed set of questions for 'Test <slice_number>' (1-indexed):
+        slice 1 = questions 1-10, slice 2 = questions 11-20, etc. Always the
+        same questions for that slice number, for every student, every time -
+        no date/rotation involved.
         """
         all_questions = list(
             self.questions.prefetch_related('choices').order_by('order')
         )
-        total = len(all_questions)
-        if total <= DAILY_QUESTION_COUNT:
-            return all_questions
-
-        num_buckets = (total + DAILY_QUESTION_COUNT - 1) // DAILY_QUESTION_COUNT
-        day_index = datetime.date.today().toordinal()
-        bucket = day_index % num_buckets
-        start = bucket * DAILY_QUESTION_COUNT
-        selected = all_questions[start:start + DAILY_QUESTION_COUNT]
-        if len(selected) < DAILY_QUESTION_COUNT:
-            selected += all_questions[:DAILY_QUESTION_COUNT - len(selected)]
-        return selected
+        start = (slice_number - 1) * QUESTIONS_PER_TEST
+        return all_questions[start:start + QUESTIONS_PER_TEST]
 
 
 class Question(models.Model):

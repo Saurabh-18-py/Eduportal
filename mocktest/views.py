@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import Http404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib import messages
@@ -10,16 +11,26 @@ from .models import Test, TestAttempt, StudentAnswer, Choice
 def test_list_view(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
     tests = subject.tests.all()
+
+    # Flatten each chapter's question bank into separate "Test 1, Test 2, ..."
+    # slots so all of them show up together, available any time.
+    test_slots = []
+    for test in tests:
+        for slice_number in range(1, test.num_slices + 1):
+            test_slots.append({'test': test, 'slice_number': slice_number})
+
     return render(request, 'mocktest/test_list.html', {
         'subject': subject,
-        'tests': tests,
+        'test_slots': test_slots,
     })
 
 
 @login_required
-def take_test_view(request, test_id):
+def take_test_view(request, test_id, slice_number):
     test = get_object_or_404(Test, id=test_id)
-    questions = test.get_daily_questions()
+    if slice_number < 1 or slice_number > test.num_slices:
+        raise Http404("That test slot doesn't exist.")
+    questions = test.get_slice_questions(slice_number)
 
     if request.method == 'POST':
         attempt = TestAttempt.objects.create(
@@ -51,6 +62,7 @@ def take_test_view(request, test_id):
     return render(request, 'mocktest/take_test.html', {
         'test': test,
         'questions': questions,
+        'slice_number': slice_number,
     })
 
 

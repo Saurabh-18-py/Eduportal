@@ -4,11 +4,11 @@
 <span class="eyebrow">Mock Tests</span>
 <h1>{{ subject.name }}</h1>
 <div class="list">
-    {% for test in tests %}
+    {% for slot in test_slots %}
     <div class="list-item">
-        <span>{{ test.title }} ({{ test.daily_question_count }} questions today, {{ test.duration_minutes }} min)</span>
+        <span>{{ slot.test.title|cut:" - Practice Test" }} - Test {{ slot.slice_number }} ({{ slot.test.duration_minutes }} min)</span>
         {% if user.is_authenticated %}
-            <a href="{% url 'mocktest:take_test' test.id %}" class="btn-small">Start Test</a>
+            <a href="{% url 'mocktest:take_test' slot.test.id slot.slice_number %}" class="btn-small">Start Test</a>
         {% else %}
             <a href="{% url 'accounts:login' %}" class="btn-small">Login to Attempt</a>
         {% endif %}

@@ -2,7 +2,7 @@
 {% block title %}{{ test.title }}{% endblock %}
 {% block content %}
 <span class="eyebrow">{{ test.subject.name }} &middot; {{ questions|length }} Questions</span>
-<h1>{{ test.title }}</h1>
+<h1>{{ test.title|cut:" - Practice Test" }} - Test {{ slice_number }}</h1>
 
 <div class="timer-bar" id="timer-bar">
     <span class="timer-label">Time Remaining</span>
