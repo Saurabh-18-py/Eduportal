@@ -5,7 +5,13 @@
 <h1>My Profile</h1>
 
 <div class="profile-head">
-    <span class="avatar-badge avatar-badge-lg">{{ profile.avatar_emoji }}</span>
+    {% if profile.avatar.image %}
+        <img src="{{ profile.avatar.image.url }}" class="avatar-badge avatar-badge-lg" alt="">
+    {% elif profile.avatar.emoji %}
+        <span class="avatar-badge avatar-badge-lg">{{ profile.avatar.emoji }}</span>
+    {% else %}
+        <span class="avatar-badge avatar-badge-lg"></span>
+    {% endif %}
     <div>
         <p class="profile-name">{{ user.first_name|default:user.username }}</p>
         <p class="profile-sub">@{{ user.username }}{% if profile %} &middot; {{ profile.get_class_level_display }}{% endif %}</p>
@@ -25,8 +31,11 @@
                 {% if profile.avatar_id == avatar.id %}checked{% endif %}
                 onchange="this.form.requestSubmit(this.form.querySelector('[name=save_avatar]'))"
             >
-            <span class="avatar-badge">{{ avatar.emoji }}</span>
-            <span class="avatar-label">{{ avatar.name }}</span>
+            {% if avatar.image %}
+                <img src="{{ avatar.image.url }}" class="avatar-badge" alt="{{ avatar.name }}">
+            {% else %}
+                <span class="avatar-badge">{{ avatar.emoji }}</span>
+            {% endif %}
         </label>
         {% empty %}
         <p class="empty-note">No avatars added yet. Add some from the admin panel.</p>

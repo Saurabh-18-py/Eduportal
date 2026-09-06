@@ -28,7 +28,11 @@
                 {% if user.is_authenticated %}
                     <a href="{% url 'mocktest:my_attempts' %}">My Results</a>
                     <a href="{% url 'accounts:profile' %}" class="nav-id">
-                        {% if user.profile %}<span class="avatar-badge nav-avatar">{{ user.profile.avatar_emoji }}</span>{% endif %}
+                        {% if user.profile.avatar.image %}
+                            <img src="{{ user.profile.avatar.image.url }}" class="avatar-badge nav-avatar" alt="">
+                        {% elif user.profile.avatar.emoji %}
+                            <span class="avatar-badge nav-avatar">{{ user.profile.avatar.emoji }}</span>
+                        {% endif %}
                         {{ user.username }}
                     </a>
                     <a href="{% url 'accounts:logout' %}">Logout</a>

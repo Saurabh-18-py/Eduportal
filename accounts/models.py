@@ -13,9 +13,13 @@ class Avatar(models.Model):
     """
     A preset profile picture option. Managed entirely from the Django admin -
     add, edit, remove, reorder, or disable avatars any time without touching code.
+    Upload a real image (preferred) and/or set an emoji as a fallback if no
+    image is attached. The name/label is for admin organization only - it is
+    never shown to students.
     """
-    name = models.CharField(max_length=50, help_text="e.g. Fox, Owl - shown as a label under the avatar")
-    emoji = models.CharField(max_length=10, help_text="The emoji shown as the avatar, e.g. 🦊")
+    name = models.CharField(max_length=50, help_text="For your own reference in the admin only - students never see this")
+    image = models.ImageField(upload_to='avatars/', blank=True, null=True, help_text="Preferred - a real avatar picture")
+    emoji = models.CharField(max_length=10, blank=True, help_text="Fallback shown only if no image is uploaded, e.g. 🦊")
     order = models.PositiveIntegerField(default=0, help_text="Lower numbers show first")
     is_active = models.BooleanField(default=True, help_text="Uncheck to hide without deleting")
 
@@ -23,7 +27,7 @@ class Avatar(models.Model):
         ordering = ['order', 'id']
 
     def __str__(self):
-        return f"{self.emoji} {self.name}"
+        return f"{self.name} ({'image' if self.image else self.emoji or 'no image/emoji set'})"
 
 
 class StudentProfile(models.Model):
@@ -34,10 +38,6 @@ class StudentProfile(models.Model):
         Avatar, on_delete=models.SET_NULL, null=True, blank=True, related_name='profiles'
     )
     created_at = models.DateTimeField(auto_now_add=True)
-
-    @property
-    def avatar_emoji(self):
-        return self.avatar.emoji if self.avatar else '🙂'
 
     def __str__(self):
         return f"{self.user.username} - Class {self.class_level}"
