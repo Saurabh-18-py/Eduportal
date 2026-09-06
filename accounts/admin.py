@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
 from django.utils.html import format_html
-from .models import StudentProfile, Avatar, UploaderAccount, ContactMessage
+from .models import StudentProfile, Avatar, UploaderAccount, Message
 
 UPLOADER_GROUP_NAME = 'Uploaders'
 
@@ -28,11 +28,10 @@ class AvatarAdmin(admin.ModelAdmin):
     preview.short_description = 'Preview'
 
 
-@admin.register(ContactMessage)
-class ContactMessageAdmin(admin.ModelAdmin):
-    list_display = ('sender', 'text', 'created_at', 'is_read')
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ('sender', 'recipient', 'text', 'created_at', 'is_read')
     list_filter = ('is_read',)
-    list_editable = ('is_read',)
 
 
 @admin.register(UploaderAccount)

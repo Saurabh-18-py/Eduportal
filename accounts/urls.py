@@ -12,6 +12,7 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('message/', views.send_message_view, name='send_message'),
     path('inbox/', views.inbox_view, name='inbox'),
+    path('inbox/<int:student_id>/', views.conversation_view, name='conversation'),
 
     # Change password while logged in (different from the forgot-password flow below)
     path(

@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
-{% block title %}Message{% endblock %}
+{% block title %}Chat with {{ student.username }}{% endblock %}
 {% block content %}
-<span class="eyebrow">Contact</span>
-<h1>Message {{ admin_user.username }}</h1>
+<span class="eyebrow"><a href="{% url 'accounts:inbox' %}">&larr; Inbox</a></span>
+<h1>{{ student.username }}</h1>
 
 <div class="chat-thread">
     {% for msg in thread %}
@@ -13,13 +13,13 @@
         </div>
     </div>
     {% empty %}
-    <p class="empty-note">No messages yet - say hi!</p>
+    <p class="empty-note">No messages yet.</p>
     {% endfor %}
 </div>
 
 <form method="post" class="form chat-form">
     {% csrf_token %}
     {{ form.text }}
-    <button type="submit">Send</button>
+    <button type="submit">Reply</button>
 </form>
 {% endblock %}

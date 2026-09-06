@@ -58,15 +58,16 @@ class UploaderAccount(User):
         verbose_name_plural = 'Uploaders (Notes upload access only)'
 
 
-class ContactMessage(models.Model):
-    """A short message a student sends to the site owner, read in the built-in Inbox page."""
+class Message(models.Model):
+    """A message between a student and the site admin - a proper two-way thread, not a one-way form."""
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['created_at']
 
     def __str__(self):
-        return f"{self.sender.username}: {self.text[:50]}"
+        return f"{self.sender.username} -> {self.recipient.username}: {self.text[:50]}"

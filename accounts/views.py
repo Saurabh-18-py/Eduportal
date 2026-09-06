@@ -1,14 +1,19 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
-from django.db.models import Avg, Count
+from django.db.models import Avg, Count, Q
 
 from .forms import SignupForm, ProfileForm, AvatarForm, MessageForm
-from .models import StudentProfile, Avatar, ContactMessage
+from .models import StudentProfile, Avatar, Message
+
+
+def get_admin_user():
+    """The site owner every student's conversation goes to (first superuser found)."""
+    return User.objects.filter(is_superuser=True).order_by('id').first()
 
 
 def signup_view(request):
@@ -27,6 +32,17 @@ def signup_view(request):
                 user=user,
                 class_level=form.cleaned_data['class_level'],
             )
+            admin_user = get_admin_user()
+            if admin_user and admin_user != user:
+                Message.objects.create(
+                    sender=admin_user,
+                    recipient=user,
+                    text=(
+                        f"Welcome to EduPortal, {user.username}! 🎉 I'm Saurabh, "
+                        f"the person behind this site. If you ever have a question, "
+                        f"feedback, or run into an issue, just reply right here."
+                    ),
+                )
             login(request, user)
             messages.success(request, "Account created successfully!")
             return redirect('home')
@@ -142,40 +158,100 @@ def profile_view(request):
 
 @login_required
 def send_message_view(request):
+    """A student's chat thread with the site admin - view history and reply."""
+    if request.user.is_superuser:
+        return redirect('accounts:inbox')
+
+    admin_user = get_admin_user()
+    if not admin_user:
+        messages.error(request, "Messaging isn't set up yet.")
+        return redirect('home')
+
     if request.method == 'POST':
         form = MessageForm(request.POST)
         if form.is_valid():
-            ContactMessage.objects.create(
+            Message.objects.create(
                 sender=request.user,
+                recipient=admin_user,
                 text=form.cleaned_data['text'],
             )
-            messages.success(request, "Your message has been sent.")
             return redirect('accounts:send_message')
     else:
         form = MessageForm()
 
-    my_messages = ContactMessage.objects.filter(sender=request.user)
+    thread = Message.objects.filter(
+        Q(sender=request.user, recipient=admin_user) | Q(sender=admin_user, recipient=request.user)
+    ).select_related('sender').order_by('created_at')
+
+    thread.filter(sender=admin_user, recipient=request.user, is_read=False).update(is_read=True)
+
     return render(request, 'accounts/send_message.html', {
         'form': form,
-        'my_messages': my_messages,
+        'thread': thread,
+        'admin_user': admin_user,
     })
 
 
 @login_required
 def inbox_view(request):
+    """List of every student conversation, most recently active first - superuser only."""
     if not request.user.is_superuser:
         raise PermissionDenied("You don't have access to the inbox.")
 
-    all_messages = ContactMessage.objects.select_related('sender').all()
+    partner_ids = set(
+        Message.objects.filter(sender=request.user).values_list('recipient_id', flat=True)
+    ) | set(
+        Message.objects.filter(recipient=request.user).values_list('sender_id', flat=True)
+    )
+    partner_ids.discard(request.user.id)
+
+    conversations = []
+    for student in User.objects.filter(id__in=partner_ids):
+        last_message = Message.objects.filter(
+            Q(sender=student, recipient=request.user) | Q(sender=request.user, recipient=student)
+        ).order_by('-created_at').first()
+        unread_count = Message.objects.filter(
+            sender=student, recipient=request.user, is_read=False
+        ).count()
+        conversations.append({
+            'student': student,
+            'last_message': last_message,
+            'unread_count': unread_count,
+        })
+
+    conversations.sort(key=lambda c: c['last_message'].created_at if c['last_message'] else 0, reverse=True)
+
+    return render(request, 'accounts/inbox.html', {'conversations': conversations})
+
+
+@login_required
+def conversation_view(request, student_id):
+    """The admin's view of one student's thread - reply directly here."""
+    if not request.user.is_superuser:
+        raise PermissionDenied("You don't have access to this.")
+
+    student = get_object_or_404(User, id=student_id)
 
     if request.method == 'POST':
-        message_id = request.POST.get('mark_read_id')
-        if message_id:
-            ContactMessage.objects.filter(id=message_id).update(is_read=True)
-            return redirect('accounts:inbox')
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            Message.objects.create(
+                sender=request.user,
+                recipient=student,
+                text=form.cleaned_data['text'],
+            )
+            return redirect('accounts:conversation', student_id=student.id)
+    else:
+        form = MessageForm()
 
-    unread_count = all_messages.filter(is_read=False).count()
-    return render(request, 'accounts/inbox.html', {
-        'all_messages': all_messages,
-        'unread_count': unread_count,
+    thread = Message.objects.filter(
+        Q(sender=student, recipient=request.user) | Q(sender=request.user, recipient=student)
+    ).select_related('sender').order_by('created_at')
+
+    thread.filter(sender=student, recipient=request.user, is_read=False).update(is_read=True)
+
+    return render(request, 'accounts/conversation.html', {
+        'form': form,
+        'thread': thread,
+        'student': student,
     })
