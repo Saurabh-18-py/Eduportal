@@ -1,4 +1,5 @@
 import os
+import time
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -7,7 +8,7 @@ from django.core.cache import cache
 from .models import Subject, Chapter, Note, PYQPaper
 from django.db import transaction
 from .utils import cloudinary_attachment_url
-from .forms import BulkNoteUploadForm, BulkPYQUploadForm
+from .forms import BulkNoteUploadForm, BulkPYQUploadForm, AIBulkPYQUploadForm
 from .decorators import uploader_required
 
 # How long the rarely-changing subject/chapter lists stay cached. This is a
@@ -112,7 +113,7 @@ def bulk_upload_view(request):
         active_tab = request.POST.get('upload_type', 'notes')
     else:
         active_tab = request.GET.get('tab', 'notes')
-    if active_tab not in ('notes', 'pyq'):
+    if active_tab not in ('notes', 'pyq', 'pyq_ai'):
         active_tab = 'notes'
 
     notes_form = BulkNoteUploadForm(
@@ -124,6 +125,11 @@ def bulk_upload_view(request):
         request.POST or None, request.FILES or None,
         prefix='pyq'
     ) if active_tab == 'pyq' else BulkPYQUploadForm(prefix='pyq')
+
+    pyq_ai_form = AIBulkPYQUploadForm(
+        request.POST or None, request.FILES or None,
+        prefix='pyqai'
+    ) if active_tab == 'pyq_ai' else AIBulkPYQUploadForm(prefix='pyqai')
 
     if request.method == 'POST':
         if active_tab == 'notes' and notes_form.is_valid():
@@ -192,6 +198,80 @@ def bulk_upload_view(request):
             messages.success(request, f"Uploaded {created} PYQ paper(s).")
             return redirect('notes:bulk_upload')
 
+        elif active_tab == 'pyq_ai' and pyq_ai_form.is_valid():
+            from .pdf_ai import extract_first_page_text, detect_pyq_metadata_with_rotation
+            from mocktest.ai_helpers import load_api_keys, MCQGenerationError, RateLimitError, InvalidAPIKeyError
+
+            api_keys = load_api_keys()
+            if not api_keys:
+                messages.error(
+                    request,
+                    "AI detection needs a Groq API key configured on the server "
+                    "(GROQ_API_KEY or GROQ_API_KEYS)."
+                )
+                return redirect('notes:bulk_upload')
+
+            key_index = [0]
+            known_subjects = list(Subject.objects.values_list('id', 'name', 'class_level'))
+            files = pyq_ai_form.cleaned_data['pdf_files']
+
+            created = 0
+            failed = []
+
+            for f in files:
+                pdf_text = extract_first_page_text(f)
+                try:
+                    result = detect_pyq_metadata_with_rotation(api_keys, key_index, pdf_text, known_subjects)
+                except (RateLimitError, InvalidAPIKeyError, MCQGenerationError) as e:
+                    failed.append((f.name, f"AI error: {e}"))
+                    continue
+
+                def _safe_int(value):
+                    try:
+                        return int(value)
+                    except (TypeError, ValueError):
+                        return None
+
+                class_level = _safe_int(result.get('class_level'))
+                subject_name = result.get('subject')
+                year = _safe_int(result.get('year'))
+                set_label = result.get('set_label') or ''
+
+                subject = None
+                if class_level and subject_name:
+                    subject = Subject.objects.filter(
+                        class_level=class_level, name__iexact=subject_name
+                    ).first()
+
+                if not (subject and year):
+                    failed.append((
+                        f.name,
+                        f"couldn't confidently detect (class={class_level}, subject={subject_name}, year={year})"
+                    ))
+                    continue
+
+                f.seek(0)
+                PYQPaper.objects.create(
+                    subject=subject,
+                    class_level=class_level,
+                    year=year,
+                    set_label=set_label,
+                    pdf_file=f,
+                )
+                created += 1
+                time.sleep(2)  # light pacing between AI calls
+
+            if failed:
+                failed_summary = "; ".join(f"{name} ({reason})" for name, reason in failed)
+                messages.warning(
+                    request,
+                    f"AI uploaded {created} paper(s). {len(failed)} need manual upload "
+                    f"(use the 'PYQ Papers' tab for these): {failed_summary}"
+                )
+            else:
+                messages.success(request, f"AI detected and uploaded {created} PYQ paper(s).")
+            return redirect('notes:bulk_upload')
+
     subjects_data = list(Subject.objects.values('id', 'name', 'class_level'))
     chapters_data = list(
         Chapter.objects.order_by('order', 'id').values('id', 'title', 'subject_id')
@@ -200,6 +280,7 @@ def bulk_upload_view(request):
     return render(request, 'notes/bulk_upload.html', {
         'notes_form': notes_form,
         'pyq_form': pyq_form,
+        'pyq_ai_form': pyq_ai_form,
         'active_tab': active_tab,
         'subjects_data': subjects_data,
         'chapters_data': chapters_data,

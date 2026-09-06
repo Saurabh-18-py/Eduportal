@@ -100,3 +100,23 @@ class BulkPYQUploadForm(forms.Form):
             if not f.name.lower().endswith('.pdf'):
                 raise ValidationError(f'"{f.name}" is not a PDF file.')
         return files
+
+
+class AIBulkPYQUploadForm(forms.Form):
+    """
+    No Class/Subject/Year/Set fields to fill in - AI reads each PDF's first
+    page and detects them automatically. Anything it can't confidently
+    determine gets reported back instead of guessed.
+    """
+    pdf_files = MultipleFileField(
+        help_text="Select multiple PDF files. AI will detect the class, subject, year, and set for each one automatically."
+    )
+
+    def clean_pdf_files(self):
+        files = self.cleaned_data.get('pdf_files') or []
+        if not files:
+            raise ValidationError("Please select at least one PDF file.")
+        for f in files:
+            if not f.name.lower().endswith('.pdf'):
+                raise ValidationError(f'"{f.name}" is not a PDF file.')
+        return files

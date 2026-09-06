@@ -7,7 +7,7 @@
 {{ subjects_data|json_script:"subjects-data" }}
 {{ chapters_data|json_script:"chapters-data" }}
 
-<div class="upload-tabs" style="margin: 1rem 0; display: flex; gap: 0.5rem;">
+<div class="upload-tabs" style="margin: 1rem 0; display: flex; gap: 0.5rem; flex-wrap: wrap;">
     <a href="?tab=notes" class="{% if active_tab == 'notes' %}nav-cta{% endif %}"
        style="padding: 0.5rem 1rem; border: 1px solid #ccc; border-radius: 6px; text-decoration: none;">
         Notes
@@ -15,6 +15,10 @@
     <a href="?tab=pyq" class="{% if active_tab == 'pyq' %}nav-cta{% endif %}"
        style="padding: 0.5rem 1rem; border: 1px solid #ccc; border-radius: 6px; text-decoration: none;">
         PYQ Papers
+    </a>
+    <a href="?tab=pyq_ai" class="{% if active_tab == 'pyq_ai' %}nav-cta{% endif %}"
+       style="padding: 0.5rem 1rem; border: 1px solid #ccc; border-radius: 6px; text-decoration: none;">
+        PYQ Papers (AI Auto-detect)
     </a>
 </div>
 
@@ -66,7 +70,7 @@
     <button type="submit">Upload Notes</button>
 </form>
 
-{% else %}
+{% elif active_tab == 'pyq' %}
 <form method="post" enctype="multipart/form-data" class="form">
     {% csrf_token %}
     <input type="hidden" name="upload_type" value="pyq">
@@ -120,6 +124,35 @@
     </p>
 
     <button type="submit">Upload PYQ Papers</button>
+</form>
+
+{% else %}
+<p class="empty-note">
+    Just pick the PDFs - AI reads each one's first page and figures out the Class, Subject,
+    Year, and Set automatically. Works best with a handful of files at a time (5-10), since
+    each one takes a few seconds to process. Anything it can't confidently detect will be
+    reported back so you can upload it manually via the "PYQ Papers" tab instead.
+</p>
+<form method="post" enctype="multipart/form-data" class="form">
+    {% csrf_token %}
+    <input type="hidden" name="upload_type" value="pyq_ai">
+
+    {% if pyq_ai_form.non_field_errors %}
+        <ul class="non-field-errors">
+            {% for error in pyq_ai_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+    {% endif %}
+
+    <p>
+        {{ pyq_ai_form.pdf_files.label_tag }}
+        {{ pyq_ai_form.pdf_files }}
+        <small>{{ pyq_ai_form.pdf_files.help_text }}</small>
+        {% if pyq_ai_form.pdf_files.errors %}
+            <ul class="field-errors">{% for error in pyq_ai_form.pdf_files.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        {% endif %}
+    </p>
+
+    <button type="submit">Upload &amp; Auto-detect</button>
 </form>
 {% endif %}
 
