@@ -120,6 +120,22 @@ a { color: inherit; }
     font-weight: 600;
 }
 
+.badge-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--red);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    vertical-align: middle;
+}
+
 .ticket-perforation {
     height: 6px;
     background-image: radial-gradient(circle, var(--paper) 3px, transparent 3px);

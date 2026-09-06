@@ -28,9 +28,11 @@ def signup_view(request):
                 email=form.cleaned_data.get('email', ''),
                 password=form.cleaned_data['password'],
             )
+            default_avatar = Avatar.objects.filter(is_active=True).order_by('order', 'id').first()
             StudentProfile.objects.create(
                 user=user,
                 class_level=form.cleaned_data['class_level'],
+                avatar=default_avatar,
             )
             admin_user = get_admin_user()
             if admin_user and admin_user != user:
@@ -95,7 +97,8 @@ def profile_view(request):
 
     profile = getattr(request.user, 'profile', None)
     if profile is None and not request.user.is_superuser and not request.user.is_staff:
-        profile = StudentProfile.objects.create(user=request.user, class_level=10)
+        default_avatar = Avatar.objects.filter(is_active=True).order_by('order', 'id').first()
+        profile = StudentProfile.objects.create(user=request.user, class_level=10, avatar=default_avatar)
 
     if request.method == 'POST' and 'save_profile' in request.POST:
         form = ProfileForm(request.POST)

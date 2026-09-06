@@ -27,9 +27,10 @@
                 <a href="{% url 'home' %}">Home</a>
                 {% if user.is_authenticated %}
                     <a href="{% url 'mocktest:my_attempts' %}">My Results</a>
-                    <a href="{% url 'accounts:send_message' %}">Message</a>
                     {% if user.is_superuser %}
-                        <a href="{% url 'accounts:inbox' %}">Inbox</a>
+                        <a href="{% url 'accounts:inbox' %}">Inbox{% if unread_message_count %} <span class="badge-dot">{{ unread_message_count }}</span>{% endif %}</a>
+                    {% else %}
+                        <a href="{% url 'accounts:send_message' %}">Message{% if unread_message_count %} <span class="badge-dot">{{ unread_message_count }}</span>{% endif %}</a>
                     {% endif %}
                     <a href="{% url 'accounts:profile' %}" class="nav-id">
                         {% if user.profile.avatar.image %}
