@@ -106,8 +106,15 @@ class AIBulkPYQUploadForm(forms.Form):
     """
     No Class/Subject/Year/Set fields to fill in - AI reads each PDF's first
     page and detects them automatically. Anything it can't confidently
-    determine gets reported back instead of guessed.
+    determine gets reported back instead of guessed. Year is often not
+    printed on the paper itself (only the "Series" code is), so a fallback
+    is offered for when AI can't find it in the text.
     """
+    year_fallback = forms.IntegerField(
+        required=False, min_value=2000, max_value=2100,
+        label="Year (fallback)",
+        help_text="Used only for PDFs where AI can't find a year in the text itself (many CBSE papers don't print it). Leave blank to skip those instead.",
+    )
     pdf_files = MultipleFileField(
         help_text="Select multiple PDF files. AI will detect the class, subject, year, and set for each one automatically."
     )

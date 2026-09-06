@@ -144,6 +144,15 @@
     {% endif %}
 
     <p>
+        {{ pyq_ai_form.year_fallback.label_tag }}
+        {{ pyq_ai_form.year_fallback }}
+        <small>{{ pyq_ai_form.year_fallback.help_text }}</small>
+        {% if pyq_ai_form.year_fallback.errors %}
+            <ul class="field-errors">{% for error in pyq_ai_form.year_fallback.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        {% endif %}
+    </p>
+
+    <p>
         {{ pyq_ai_form.pdf_files.label_tag }}
         {{ pyq_ai_form.pdf_files }}
         <small>{{ pyq_ai_form.pdf_files.help_text }}</small>

@@ -214,6 +214,7 @@ def bulk_upload_view(request):
             key_index = [0]
             known_subjects = list(Subject.objects.values_list('id', 'name', 'class_level'))
             files = pyq_ai_form.cleaned_data['pdf_files']
+            year_fallback = pyq_ai_form.cleaned_data.get('year_fallback')
 
             created = 0
             failed = []
@@ -221,7 +222,7 @@ def bulk_upload_view(request):
             for f in files:
                 pdf_text = extract_first_page_text(f)
                 try:
-                    result = detect_pyq_metadata_with_rotation(api_keys, key_index, pdf_text, known_subjects)
+                    result = detect_pyq_metadata_with_rotation(api_keys, key_index, f.name, pdf_text, known_subjects)
                 except (RateLimitError, InvalidAPIKeyError, MCQGenerationError) as e:
                     failed.append((f.name, f"AI error: {e}"))
                     continue
@@ -234,7 +235,7 @@ def bulk_upload_view(request):
 
                 class_level = _safe_int(result.get('class_level'))
                 subject_name = result.get('subject')
-                year = _safe_int(result.get('year'))
+                year = _safe_int(result.get('year')) or year_fallback
                 set_label = result.get('set_label') or ''
 
                 subject = None

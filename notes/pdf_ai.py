@@ -33,28 +33,35 @@ def extract_first_page_text(file_obj):
     return text
 
 
-def detect_pyq_metadata(api_key, pdf_text, known_subjects):
+def detect_pyq_metadata(api_key, filename, pdf_text, known_subjects):
     """
     known_subjects: list of (id, name, class_level) tuples for every existing
     Subject, so the AI matches against what's actually in the database
-    instead of inventing a new subject name.
+    instead of inventing a new subject name. The filename is passed too,
+    since many CBSE papers don't print the year on the page itself, but a
+    user can name the file with the year in it (e.g. "Science_2023_Set1.pdf").
     """
     subjects_list = "\n".join(
         f"- {name} (Class {class_level})" for _id, name, class_level in known_subjects
     )
     body_text = pdf_text[:3000].strip() or "(no extractable text - this may be a scanned/image-only PDF)"
 
-    prompt = f"""This is the first page text of a CBSE previous-year board exam question paper PDF:
+    prompt = f"""This is a CBSE previous-year board exam question paper PDF.
 
+Filename: {filename}
+
+First page text:
 ---
 {body_text}
 ---
 
-Extract these details about the paper:
+Extract these details about the paper. Check BOTH the filename and the page text -
+the exam year in particular is often only in the filename (many official CBSE papers
+don't print the calendar year on the page itself, only a "Series" code):
 - class_level: 9, 10, 11, or 12 (as a number), or null if unclear
 - subject: match to EXACTLY one of these existing subjects (copy the name exactly as listed), or null if no confident match:
 {subjects_list}
-- year: the 4-digit exam year (e.g. 2023), or null if unclear
+- year: the 4-digit exam year (e.g. 2023), or null if it truly isn't in the filename or the text
 - set_label: the paper's Set label if mentioned (e.g. "Set 1", "Set A"), or "" if not mentioned
 
 Respond with ONLY a JSON object, no other text, no markdown fences:
@@ -100,7 +107,7 @@ Respond with ONLY a JSON object, no other text, no markdown fences:
         raise MCQGenerationError(f"Could not parse metadata JSON: {e}\nRaw: {text[:300]}")
 
 
-def detect_pyq_metadata_with_rotation(api_keys, key_index, pdf_text, known_subjects, on_rotate=None):
+def detect_pyq_metadata_with_rotation(api_keys, key_index, filename, pdf_text, known_subjects, on_rotate=None):
     """Same key-rotation pattern used elsewhere in the project - tries each key until one works."""
     n = len(api_keys)
     if n == 0:
@@ -110,7 +117,7 @@ def detect_pyq_metadata_with_rotation(api_keys, key_index, pdf_text, known_subje
     for attempt in range(n):
         idx = (key_index[0] + attempt) % n
         try:
-            result = detect_pyq_metadata(api_keys[idx], pdf_text, known_subjects)
+            result = detect_pyq_metadata(api_keys[idx], filename, pdf_text, known_subjects)
             key_index[0] = idx
             return result
         except (RateLimitError, InvalidAPIKeyError) as e:
