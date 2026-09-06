@@ -59,13 +59,20 @@ Extract these details about the paper. Check BOTH the filename and the page text
 the exam year in particular is often only in the filename (many official CBSE papers
 don't print the calendar year on the page itself, only a "Series" code):
 - class_level: 9, 10, 11, or 12 (as a number), or null if unclear
-- subject: match to EXACTLY one of these existing subjects (copy the name exactly as listed), or null if no confident match:
+- subject: the BARE subject name only, exactly as it appears before " (Class" in this list
+  (do NOT include the "(Class N)" part in your answer) - match to one of:
 {subjects_list}
 - year: the 4-digit exam year (e.g. 2023), or null if it truly isn't in the filename or the text
-- set_label: the paper's Set label if mentioned (e.g. "Set 1", "Set A"), or "" if not mentioned
+- set_label: the paper's Set number. CBSE papers often show a "Code Number" or "Series"
+  like "32/4/1" or "31-4-3" (in the filename and/or on the page) - the LAST number in that
+  code is almost always the Set number, so "32/4/1" means Set 1, "31-4-3" means Set 3.
+  Also check for it spelled out directly (e.g. "SET-1", "Set A"). Respond with just the
+  number/letter (e.g. "1", "A"), or "" if you truly can't find any clue.
 
-Respond with ONLY a JSON object, no other text, no markdown fences:
-{{"class_level": 10, "subject": "Science", "year": 2023, "set_label": "Set 1"}}"""
+Respond with ONLY a JSON object, no other text, no markdown fences. Example - note "subject"
+has NO "(Class ...)" in it even though the list above shows it that way, and "set_label" is
+just the bare number/letter:
+{{"class_level": 10, "subject": "Science", "year": 2023, "set_label": "1"}}"""
 
     response = requests.post(
         GROQ_API_URL,

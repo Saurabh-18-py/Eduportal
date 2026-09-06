@@ -1,4 +1,5 @@
 import os
+import re
 import time
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -235,6 +236,10 @@ def bulk_upload_view(request):
 
                 class_level = _safe_int(result.get('class_level'))
                 subject_name = result.get('subject')
+                if subject_name:
+                    # Defensive: strip an accidental "(Class N)" suffix the AI sometimes
+                    # copies from the reference list, even though we told it not to.
+                    subject_name = re.sub(r'\s*\(class\s*\d+\)\s*$', '', subject_name, flags=re.IGNORECASE).strip()
                 year = _safe_int(result.get('year')) or year_fallback
                 set_label = result.get('set_label') or ''
 
