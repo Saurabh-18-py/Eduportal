@@ -3,18 +3,19 @@
 {% block content %}
 <span class="eyebrow">Mock Tests</span>
 <h1>{{ subject.name }}</h1>
-<div class="list">
-    {% for slot in test_slots %}
-    <div class="list-item">
-        <span>{{ slot.test.title|cut:" - Practice Test" }} - Test {{ slot.slice_number }} ({{ slot.test.duration_minutes }} min)</span>
+
+{% for group in chapter_groups %}
+<h2 class="section-heading">{{ group.chapter_title }}</h2>
+<div class="btn-group">
+    {% for n in group.slice_numbers %}
         {% if user.is_authenticated %}
-            <a href="{% url 'mocktest:take_test' slot.test.id slot.slice_number %}" class="btn-small">Start Test</a>
+            <a href="{% url 'mocktest:take_test' group.test.id n %}" class="btn-small">Test {{ n }}</a>
         {% else %}
             <a href="{% url 'accounts:login' %}" class="btn-small">Login to Attempt</a>
         {% endif %}
-    </div>
-    {% empty %}
-    <p>No tests available yet for this subject.</p>
     {% endfor %}
 </div>
+{% empty %}
+<p>No tests available yet for this subject.</p>
+{% endfor %}
 {% endblock %}

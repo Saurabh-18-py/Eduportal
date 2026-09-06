@@ -12,16 +12,20 @@ def test_list_view(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
     tests = subject.tests.all()
 
-    # Flatten each chapter's question bank into separate "Test 1, Test 2, ..."
-    # slots so all of them show up together, available any time.
-    test_slots = []
+    # Group by chapter: each chapter's Test 1..N shown together under its own heading.
+    chapter_groups = []
     for test in tests:
-        for slice_number in range(1, test.num_slices + 1):
-            test_slots.append({'test': test, 'slice_number': slice_number})
+        if test.num_slices == 0:
+            continue
+        chapter_groups.append({
+            'test': test,
+            'chapter_title': test.title.replace(' - Practice Test', '').strip(),
+            'slice_numbers': range(1, test.num_slices + 1),
+        })
 
     return render(request, 'mocktest/test_list.html', {
         'subject': subject,
-        'test_slots': test_slots,
+        'chapter_groups': chapter_groups,
     })
 
 
