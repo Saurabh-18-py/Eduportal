@@ -10,6 +10,8 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('profile/', views.profile_view, name='profile'),
+    path('message/', views.send_message_view, name='send_message'),
+    path('inbox/', views.inbox_view, name='inbox'),
 
     # Change password while logged in (different from the forgot-password flow below)
     path(

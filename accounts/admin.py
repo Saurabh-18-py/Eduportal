@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
 from django.utils.html import format_html
-from .models import StudentProfile, Avatar, UploaderAccount
+from .models import StudentProfile, Avatar, UploaderAccount, ContactMessage
 
 UPLOADER_GROUP_NAME = 'Uploaders'
 
@@ -26,6 +26,13 @@ class AvatarAdmin(admin.ModelAdmin):
             return format_html('<span style="font-size:1.4rem;">{}</span>', obj.emoji)
         return '(no image/emoji)'
     preview.short_description = 'Preview'
+
+
+@admin.register(ContactMessage)
+class ContactMessageAdmin(admin.ModelAdmin):
+    list_display = ('sender', 'text', 'created_at', 'is_read')
+    list_filter = ('is_read',)
+    list_editable = ('is_read',)
 
 
 @admin.register(UploaderAccount)

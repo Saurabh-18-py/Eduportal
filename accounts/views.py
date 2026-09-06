@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.core.exceptions import PermissionDenied
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
@@ -6,8 +7,8 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db.models import Avg, Count
 
-from .forms import SignupForm, ProfileForm, AvatarForm
-from .models import StudentProfile, Avatar
+from .forms import SignupForm, ProfileForm, AvatarForm, MessageForm
+from .models import StudentProfile, Avatar, ContactMessage
 
 
 def signup_view(request):
@@ -136,4 +137,45 @@ def profile_view(request):
         'total_attempts': total_attempts,
         'avg_score_pct': avg_score_pct,
         'subject_stats': subject_stats,
+    })
+
+
+@login_required
+def send_message_view(request):
+    if request.method == 'POST':
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            ContactMessage.objects.create(
+                sender=request.user,
+                text=form.cleaned_data['text'],
+            )
+            messages.success(request, "Your message has been sent.")
+            return redirect('accounts:send_message')
+    else:
+        form = MessageForm()
+
+    my_messages = ContactMessage.objects.filter(sender=request.user)
+    return render(request, 'accounts/send_message.html', {
+        'form': form,
+        'my_messages': my_messages,
+    })
+
+
+@login_required
+def inbox_view(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied("You don't have access to the inbox.")
+
+    all_messages = ContactMessage.objects.select_related('sender').all()
+
+    if request.method == 'POST':
+        message_id = request.POST.get('mark_read_id')
+        if message_id:
+            ContactMessage.objects.filter(id=message_id).update(is_read=True)
+            return redirect('accounts:inbox')
+
+    unread_count = all_messages.filter(is_read=False).count()
+    return render(request, 'accounts/inbox.html', {
+        'all_messages': all_messages,
+        'unread_count': unread_count,
     })

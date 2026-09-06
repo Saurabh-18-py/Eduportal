@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Message{% endblock %}
+{% block content %}
+<span class="eyebrow">Contact</span>
+<h1>Send a Message</h1>
+
+<form method="post" class="form">
+    {% csrf_token %}
+    <p>
+        {{ form.text }}
+        {% if form.text.errors %}
+            <ul class="field-errors">{% for error in form.text.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        {% endif %}
+    </p>
+    <button type="submit">Send</button>
+</form>
+
+{% if my_messages %}
+<h2 class="section-heading">Your Messages</h2>
+<div class="list">
+    {% for msg in my_messages %}
+    <div class="list-item answer-row {% if msg.is_read %}correct{% endif %}">
+        <span>{{ msg.text }}</span>
+        <span>{{ msg.created_at|date:"d M, H:i" }}{% if msg.is_read %} &middot; Read{% endif %}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

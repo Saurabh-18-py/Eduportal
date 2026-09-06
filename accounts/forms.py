@@ -42,3 +42,11 @@ class AvatarForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['avatar'].queryset = Avatar.objects.filter(is_active=True)
+
+
+class MessageForm(forms.Form):
+    text = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 4, 'placeholder': 'Type your message here...'}),
+        max_length=2000,
+        label='',
+    )
