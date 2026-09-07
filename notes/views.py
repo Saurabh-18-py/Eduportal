@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import gc
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -265,6 +266,7 @@ def bulk_upload_view(request):
                     pdf_file=f,
                 )
                 created += 1
+                gc.collect()
                 time.sleep(2)  # light pacing between AI calls
 
             if failed:

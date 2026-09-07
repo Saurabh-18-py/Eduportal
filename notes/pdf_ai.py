@@ -1,5 +1,6 @@
 import json
 import re
+import gc
 
 import requests
 from pypdf import PdfReader
@@ -26,10 +27,12 @@ def extract_first_page_text(file_obj):
         reader = PdfReader(file_obj)
         if reader.pages:
             text = reader.pages[0].extract_text() or ""
+        del reader
     except Exception:
         text = ""
     finally:
         file_obj.seek(0)  # rewind so the file can still be saved to the model field afterwards
+        gc.collect()  # PDF parsing can hold onto memory - free it before moving to the next file
     return text
 
 
