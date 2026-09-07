@@ -257,6 +257,16 @@ def bulk_upload_view(request):
                     ))
                     continue
 
+                existing = PYQPaper.objects.filter(
+                    subject=subject, year=year, set_label=set_label
+                ).first()
+                if existing:
+                    failed.append((
+                        f.name,
+                        f"skipped - already have {subject} {year} Set {set_label or '(none)'} (id={existing.id})"
+                    ))
+                    continue
+
                 f.seek(0)
                 PYQPaper.objects.create(
                     subject=subject,
