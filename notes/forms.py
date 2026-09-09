@@ -47,7 +47,7 @@ class BulkNoteUploadForm(forms.Form):
         super().__init__(*args, **kwargs)
         from .models import Subject, Chapter
         self.fields['subject'].queryset = Subject.objects.all()
-        self.fields['chapter'].queryset = Chapter.objects.all()
+        self.fields['chapter'].queryset = Chapter.objects.select_related('subject').all()
 
     def clean(self):
         cleaned_data = super().clean()
