@@ -61,6 +61,7 @@ class Command(BaseCommand):
                 question = Question.objects.create(
                     test=test,
                     text=q['question'],
+                    explanation=q.get('explanation', ''),
                     order=i,
                 )
                 for choice_text in q['options']:

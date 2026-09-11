@@ -114,7 +114,7 @@ class Command(BaseCommand):
                     next_order = test.questions.count() + 1
                     for q in questions_data:
                         question = Question.objects.create(
-                            test=test, text=q['question'], order=next_order
+                            test=test, text=q['question'], explanation=q.get('explanation', ''), order=next_order
                         )
                         next_order += 1
                         for choice_text in q['options']:

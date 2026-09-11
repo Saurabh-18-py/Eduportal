@@ -48,6 +48,7 @@ class Test(models.Model):
 class Question(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='questions')
     text = models.TextField()
+    explanation = models.TextField(blank=True, default='', help_text="Why the correct answer is correct - shown to students after they submit a test")
     order = models.PositiveIntegerField(default=1)
 
     class Meta:

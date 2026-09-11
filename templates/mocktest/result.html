@@ -31,6 +31,9 @@
                 {% endfor %}
             </p>
             {% endif %}
+            {% if answer.question.explanation %}
+            <p class="explanation-text">💡 {{ answer.question.explanation }}</p>
+            {% endif %}
         </div>
     </div>
     {% endfor %}

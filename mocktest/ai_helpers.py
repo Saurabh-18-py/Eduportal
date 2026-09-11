@@ -83,12 +83,13 @@ Generate {num_questions} multiple choice questions in the style of previous-year
 
 IMPORTANT - stay strictly within the depth of the official CBSE NCERT Class {class_level} syllabus for this exact chapter. "Hard" means tricky and thought-provoking WITHIN that grade's syllabus (e.g. multi-step reasoning, common misconceptions, applying a concept in a new context) - it does NOT mean borrowing concepts, formulas, or terminology from a higher class. For example, in Class 9-10 Acids/Bases/Salts, do NOT bring in titration equivalence-point calculations, conjugate acid-base pairs, or ionic equilibrium - those belong to Class 11-12 and would be out of syllabus here.
 
-Respond with ONLY a JSON array, no other text, no markdown code fences, no explanation. Format:
+Respond with ONLY a JSON array, no other text, no markdown code fences. Format:
 [
   {{
     "question": "question text here",
     "options": ["option A", "option B", "option C", "option D"],
-    "correct_answer": "the exact text of the correct option"
+    "correct_answer": "the exact text of the correct option",
+    "explanation": "1-2 short sentences explaining why that answer is correct, written for a student reviewing the question after their test"
   }}
 ]"""
 
@@ -185,7 +186,103 @@ def generate_mcqs_batch_with_meta(api_key, subject_name, chapter, class_level, n
     return questions, meta
 
 
-def generate_mcqs_batch_with_rotation(api_keys, key_index, subject_name, chapter, class_level, num_questions, difficulty, on_rotate=None):
+def _request_explanations_from_groq(api_key, items):
+    """
+    items: list of {'question': str, 'correct_answer': str} for questions that
+    already exist but have no explanation yet. Returns (explanations, headers)
+    where explanations is a list of strings, same order/length as items.
+    """
+    numbered = "\n".join(
+        f'{i + 1}. Q: {item["question"]}\n   Correct answer: {item["correct_answer"]}'
+        for i, item in enumerate(items)
+    )
+
+    prompt = f"""For each question below, write a 1-2 sentence explanation of why the
+given correct answer is correct. Write it for a student reviewing their test afterwards.
+
+{numbered}
+
+Respond with ONLY a JSON array of exactly {len(items)} strings, in the same order, no other text, no markdown fences:
+["explanation for question 1", "explanation for question 2", ...]"""
+
+    response = requests.post(
+        GROQ_API_URL,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": GROQ_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.3,
+            "max_tokens": 4000,
+            "reasoning_effort": "low",
+        },
+        timeout=60,
+    )
+
+    if response.status_code == 429:
+        retry_after = _parse_retry_after(response.text)
+        raise RateLimitError(f"Rate limited: {response.text}", retry_after)
+
+    if response.status_code == 401:
+        raise InvalidAPIKeyError(f"Invalid/revoked API key: {response.text}")
+
+    if response.status_code != 200:
+        raise MCQGenerationError(f"Groq API error ({response.status_code}): {response.text}")
+
+    data = response.json()
+    text = data['choices'][0]['message']['content'].strip()
+
+    if text.startswith("```"):
+        text = text.split("```")[1]
+        if text.startswith("json"):
+            text = text[4:]
+        text = text.strip()
+
+    try:
+        explanations = json.loads(text)
+    except json.JSONDecodeError as e:
+        explanations = _try_salvage_json_array(text)
+        if explanations is None:
+            raise MCQGenerationError(f"Could not parse explanations JSON: {e}\nRaw: {text[:300]}")
+
+    # Pad/truncate defensively so a parsing hiccup never crashes the caller
+    normalized = []
+    for i in range(len(items)):
+        val = explanations[i] if i < len(explanations) else ''
+        normalized.append(val if isinstance(val, str) else '')
+
+    return normalized, response.headers
+
+
+def generate_explanations_batch_with_meta(api_key, items):
+    explanations, headers = _request_explanations_from_groq(api_key, items)
+    meta = {
+        'remaining_tokens': _safe_int(headers.get('x-ratelimit-remaining-tokens')),
+        'remaining_requests': _safe_int(headers.get('x-ratelimit-remaining-requests')),
+    }
+    return explanations, meta
+
+
+def generate_explanations_batch_with_rotation(api_keys, key_index, items, on_rotate=None):
+    """Same key-rotation pattern used elsewhere in the project."""
+    n = len(api_keys)
+    if n == 0:
+        raise MCQGenerationError("No Groq API key configured (set GROQ_API_KEY or GROQ_API_KEYS).")
+
+    last_error = None
+    for attempt in range(n):
+        idx = (key_index[0] + attempt) % n
+        try:
+            explanations, meta = generate_explanations_batch_with_meta(api_keys[idx], items)
+            key_index[0] = idx
+            return explanations, meta
+        except (RateLimitError, InvalidAPIKeyError) as e:
+            last_error = e
+            if on_rotate:
+                on_rotate(idx, (idx + 1) % n)
+    raise last_error
     """
     Like generate_mcqs_batch_with_meta, but tries multiple API keys: starts
     from api_keys[key_index[0]] and, on a RateLimitError, rotates to the next

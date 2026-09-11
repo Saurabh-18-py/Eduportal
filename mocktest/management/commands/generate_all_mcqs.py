@@ -251,7 +251,9 @@ class Command(BaseCommand):
                             duration_minutes=max(15, num_questions * 2),
                         )
                         for i, q in enumerate(questions_data, start=1):
-                            question = Question.objects.create(test=test, text=q['question'], order=i)
+                            question = Question.objects.create(
+                                test=test, text=q['question'], explanation=q.get('explanation', ''), order=i
+                            )
                             for choice_text in q['options']:
                                 Choice.objects.create(
                                     question=question,
