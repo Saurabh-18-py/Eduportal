@@ -283,6 +283,9 @@ def generate_explanations_batch_with_rotation(api_keys, key_index, items, on_rot
             if on_rotate:
                 on_rotate(idx, (idx + 1) % n)
     raise last_error
+
+
+def generate_mcqs_batch_with_rotation(api_keys, key_index, subject_name, chapter, class_level, num_questions, difficulty, on_rotate=None):
     """
     Like generate_mcqs_batch_with_meta, but tries multiple API keys: starts
     from api_keys[key_index[0]] and, on a RateLimitError, rotates to the next
