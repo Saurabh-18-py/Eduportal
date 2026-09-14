@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
 from django.utils.html import format_html
-from .models import StudentProfile, Avatar, UploaderAccount, Message
+from .models import StudentProfile, Avatar, UploaderAccount, Message, AdminProfile
 
 UPLOADER_GROUP_NAME = 'Uploaders'
 
@@ -25,6 +25,17 @@ class AvatarAdmin(admin.ModelAdmin):
         if obj.emoji:
             return format_html('<span style="font-size:1.4rem;">{}</span>', obj.emoji)
         return '(no image/emoji)'
+    preview.short_description = 'Preview'
+
+
+@admin.register(AdminProfile)
+class AdminProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'preview')
+
+    def preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="height:40px;width:40px;border-radius:50%;object-fit:cover;">', obj.image.url)
+        return '(no image set)'
     preview.short_description = 'Preview'
 
 

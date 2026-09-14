@@ -432,9 +432,28 @@ h2 {
     padding: 4px;
 }
 
-.chat-row { display: flex; }
+.chat-row { display: flex; align-items: flex-end; gap: 8px; }
 .chat-mine { justify-content: flex-end; }
 .chat-theirs { justify-content: flex-start; }
+
+.chat-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.chat-avatar-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ink-soft);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    font-family: var(--font-display);
+}
 
 .chat-bubble {
     max-width: 78%;

@@ -43,6 +43,19 @@ class StudentProfile(models.Model):
         return f"{self.user.username} - Class {self.class_level}"
 
 
+class AdminProfile(models.Model):
+    """
+    The site owner's own profile picture, set separately from the student
+    Avatar presets. Managed from the Django admin - upload once and it shows
+    everywhere the owner's messages appear (chat bubbles, etc).
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='admin_profile')
+    image = models.ImageField(upload_to='admin_avatars/', blank=True, null=True, help_text="Your own profile picture")
+
+    def __str__(self):
+        return f"Admin profile - {self.user.username}"
+
+
 class UploaderAccount(User):
     """
     A proxy over Django's built-in User, shown in the admin as a separate,
