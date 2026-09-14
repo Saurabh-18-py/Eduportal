@@ -40,9 +40,9 @@ def signup_view(request):
                     sender=admin_user,
                     recipient=user,
                     text=(
-                        f"Welcome to EduPortal, {user.username}! 🎉 I'm Saurabh, "
-                        f"the person behind this site. If you ever have a question, "
-                        f"feedback, or run into an issue, just reply right here."
+                        f"Welcome, {user.username} 🎉 You're in the right spot — "
+                        f"studying's about to hit different. I'm Saurabh. "
+                        f"Hit me up anytime 💯"
                     ),
                 )
             login(request, user)
