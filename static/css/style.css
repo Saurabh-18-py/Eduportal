@@ -57,6 +57,9 @@ a { color: inherit; }
     height: 42px;
     width: auto;
     display: block;
+    background: #FFFFFF;
+    border-radius: 8px;
+    padding: 3px;
 }
 
 .brand-text {
