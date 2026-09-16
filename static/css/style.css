@@ -53,15 +53,10 @@ a { color: inherit; }
     color: var(--paper);
 }
 
-.brand-mark {
-    font-family: var(--font-mono);
-    font-weight: 600;
-    background: var(--gold);
-    color: var(--ink);
-    padding: 6px 10px;
-    border-radius: 4px;
-    font-size: 0.95rem;
-    letter-spacing: 0.05em;
+.brand-logo {
+    height: 42px;
+    width: auto;
+    display: block;
 }
 
 .brand-text {
