@@ -6,19 +6,9 @@
     var header = document.querySelector('.ticket-header');
     if (header) header.classList.add(reduced ? '' : 'anim-header-in');
 
-    // ---- Hero: split h1 into lines for stagger, then reveal ----
+    // ---- Hero: reveal (whole block handles its own cinematic zoom-in via CSS) ----
     var hero = document.querySelector('.hero');
-    if (hero) {
-        var h1 = hero.querySelector('h1');
-        if (h1 && !h1.dataset.split) {
-            var parts = h1.innerHTML.split(/<br\s*\/?>/i);
-            h1.innerHTML = parts
-                .map(function (line) { return '<span class="hero-line">' + line + '</span>'; })
-                .join('<br>');
-            h1.dataset.split = 'true';
-        }
-        if (!reduced) hero.classList.add('anim-hero-in');
-    }
+    if (hero && !reduced) hero.classList.add('anim-hero-in');
 
     // ---- Scroll reveal for cards / list items / banners / question blocks ----
     var revealTargets = document.querySelectorAll(

@@ -764,22 +764,14 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--teal); outline-
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ----- Hero: staggered line reveal ----- */
+/* ----- Hero: staggered reveal ----- */
 .hero .eyebrow,
 .hero .hero-sub { opacity: 0; transform: translateY(14px); }
-.hero-line { display: inline-block; opacity: 0; transform: translateY(28px); }
 
 .hero.anim-hero-in .eyebrow {
     animation: rise-in 0.55s ease forwards;
     animation-delay: 0.05s;
 }
-.hero.anim-hero-in .hero-line {
-    animation: rise-in 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.hero.anim-hero-in .hero-line:nth-of-type(1) { animation-delay: 0.16s; }
-.hero.anim-hero-in .hero-line:nth-of-type(2) { animation-delay: 0.30s; }
-.hero.anim-hero-in .hero-line:nth-of-type(3) { animation-delay: 0.44s; }
-.hero.anim-hero-in .hero-line:nth-of-type(4) { animation-delay: 0.58s; }
 .hero.anim-hero-in .hero-sub {
     animation: rise-in 0.6s ease forwards;
     animation-delay: 0.62s;
@@ -870,7 +862,7 @@ button:active, .nav-cta:active { transform: translateY(0) scale(0.96); }
 
 /* ----- Respect reduced motion ----- */
 @media (prefers-reduced-motion: reduce) {
-    .ticket-header, .hero-line, .hero .eyebrow, .hero .hero-sub,
+    .ticket-header, .hero .eyebrow, .hero .hero-sub,
     .reveal, .alert, .hall-ticket, .hall-ticket-barcode, .hall-ticket-stub {
         animation: none !important;
         transition: none !important;
