@@ -28,6 +28,9 @@
                 <a href="{% url 'home' %}">Home</a>
                 {% if user.is_authenticated %}
                     <a href="{% url 'mocktest:my_attempts' %}">My Results</a>
+                    {% if not user.is_superuser %}
+                        <a href="{% url 'doubtsolver:chat' %}">Doubt Solver</a>
+                    {% endif %}
                     {% if user.is_superuser %}
                         <a href="{% url 'accounts:inbox' %}">Inbox{% if unread_message_count %} <span class="badge-dot">{{ unread_message_count }}</span>{% endif %}</a>
                     {% else %}

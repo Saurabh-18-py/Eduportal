@@ -37,6 +37,10 @@ class StudentProfile(models.Model):
     avatar = models.ForeignKey(
         Avatar, on_delete=models.SET_NULL, null=True, blank=True, related_name='profiles'
     )
+    doubt_limit_per_day = models.PositiveIntegerField(
+        default=10,
+        help_text="How many AI Doubt Solver questions this student can ask per day. Raise it here if they ask for more."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -12,6 +12,7 @@ urlpatterns = [
     path('notes/', include('notes.urls')),
     path('mocktest/', include('mocktest.urls')),
     path('notifications/', include('notifications.urls')),
+    path('doubt/', include('doubtsolver.urls')),
     path('sw.js', service_worker, name='service_worker'),
 ]
 

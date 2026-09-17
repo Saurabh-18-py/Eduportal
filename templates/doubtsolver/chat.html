@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load account_extras %}
+{% block title %}Doubt Solver{% endblock %}
+{% block content %}
+<span class="eyebrow">AI Tutor</span>
+<h1>Doubt Solver</h1>
+<p class="empty-note" style="margin-top:-8px;">Ask anything from your syllabus - explained step by step.</p>
+<p class="empty-note" id="doubts-left-note" style="margin-top:-8px;">
+    <strong id="doubts-left-count">{{ doubts_left }}</strong> of {{ doubt_limit }} doubts left today
+</p>
+
+<div class="chat-thread" id="doubt-thread">
+    {% for msg in history %}
+    <div class="chat-row {% if msg.role == 'user' %}chat-mine{% else %}chat-theirs{% endif %}">
+        {% if msg.role == 'user' %}
+            {% with pic=request.user|avatar_url %}
+            {% if pic %}<img src="{{ pic }}" class="chat-avatar" alt="">{% else %}<span class="chat-avatar chat-avatar-fallback">{{ request.user.username|first|upper }}</span>{% endif %}
+            {% endwith %}
+        {% else %}
+            <img src="/static/images/logo-icon.png" class="chat-avatar" alt="AI Tutor">
+        {% endif %}
+        <div class="chat-bubble">
+            <p>{{ msg.content|linebreaksbr }}</p>
+            <span class="chat-time">{{ msg.created_at|date:"d M, H:i" }}</span>
+        </div>
+    </div>
+    {% empty %}
+    <p class="empty-note" id="doubt-empty-note">No doubts asked yet - type your first question below!</p>
+    {% endfor %}
+</div>
+
+<form class="form chat-form" id="doubt-form">
+    {% csrf_token %}
+    <textarea id="doubt-input" placeholder="Type your doubt here..." rows="3" maxlength="2000" required></textarea>
+    <button type="submit" id="doubt-send-btn">Ask</button>
+</form>
+
+<script>
+(function () {
+    const thread = document.getElementById('doubt-thread');
+    const form = document.getElementById('doubt-form');
+    const input = document.getElementById('doubt-input');
+    const sendBtn = document.getElementById('doubt-send-btn');
+    const emptyNote = document.getElementById('doubt-empty-note');
+    const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function addRow(role, text) {
+        if (emptyNote) emptyNote.remove();
+        const row = document.createElement('div');
+        row.className = 'chat-row ' + (role === 'user' ? 'chat-mine' : 'chat-theirs');
+
+        let avatarHtml;
+        if (role === 'user') {
+            avatarHtml = document.querySelector('.chat-mine .chat-avatar, .chat-mine .chat-avatar-fallback')
+                ? document.querySelector('.chat-mine .chat-avatar, .chat-mine .chat-avatar-fallback').outerHTML
+                : '<span class="chat-avatar chat-avatar-fallback">{{ request.user.username|first|upper }}</span>';
+        } else {
+            avatarHtml = '<img src="/static/images/logo-icon.png" class="chat-avatar" alt="AI Tutor">';
+        }
+
+        row.innerHTML = avatarHtml +
+            '<div class="chat-bubble"><p>' + escapeHtml(text).replace(/\n/g, '<br>') + '</p></div>';
+        thread.appendChild(row);
+        thread.scrollTop = thread.scrollHeight;
+        return row;
+    }
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const message = input.value.trim();
+        if (!message) return;
+
+        addRow('user', message);
+        input.value = '';
+        sendBtn.disabled = true;
+        const typingRow = addRow('assistant', 'Thinking...');
+
+        try {
+            const res = await fetch("{% url 'doubtsolver:ask' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({ message: message }),
+            });
+            const data = await res.json();
+            typingRow.remove();
+            if (data.reply) {
+                addRow('assistant', data.reply);
+                const counter = document.getElementById('doubts-left-count');
+                if (counter) counter.textContent = Math.max(parseInt(counter.textContent, 10) - 1, 0);
+                if (window.MathJax && window.MathJax.typesetPromise) {
+                    window.MathJax.typesetPromise([thread]);
+                }
+            } else {
+                addRow('assistant', data.error || 'Something went wrong, try again.');
+                if (data.limit_reached) {
+                    const counter = document.getElementById('doubts-left-count');
+                    if (counter) counter.textContent = '0';
+                }
+            }
+        } catch (err) {
+            typingRow.remove();
+            addRow('assistant', "Couldn't reach the server. Check your connection and try again.");
+        } finally {
+            sendBtn.disabled = false;
+            input.focus();
+        }
+    });
+})();
+</script>
+{% endblock %}
