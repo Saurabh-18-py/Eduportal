@@ -33,8 +33,11 @@ class Command(BaseCommand):
 
         sent, failed = 0, 0
         for sub in qs:
-            ok = send_push_to_subscription(sub, options['title'], options['body'], options['url'])
-            sent += ok
-            failed += not ok
+            ok, error = send_push_to_subscription(sub, options['title'], options['body'], options['url'])
+            if ok:
+                sent += 1
+            else:
+                failed += 1
+                self.stdout.write(self.style.ERROR(f'  Failed for {sub.user.username}: {error}'))
 
         self.stdout.write(self.style.SUCCESS(f'Done. Sent: {sent}, Failed: {failed}'))

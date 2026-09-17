@@ -7,8 +7,9 @@ from .push import send_push_to_subscription
 @admin.action(description="Send a test push notification to selected devices")
 def send_test_notification(modeladmin, request, queryset):
     sent, failed = 0, 0
+    errors = []
     for sub in queryset:
-        ok = send_push_to_subscription(
+        ok, error = send_push_to_subscription(
             sub,
             title="EduPortal",
             body="This is a test notification from the admin panel.",
@@ -17,7 +18,11 @@ def send_test_notification(modeladmin, request, queryset):
             sent += 1
         else:
             failed += 1
-    modeladmin.message_user(request, f"Sent: {sent}, Failed: {failed}")
+            errors.append(f"{sub.user.username}: {error}")
+    msg = f"Sent: {sent}, Failed: {failed}"
+    if errors:
+        msg += " — " + "; ".join(errors)
+    modeladmin.message_user(request, msg)
 
 
 @admin.register(PushSubscription)
