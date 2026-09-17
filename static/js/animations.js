@@ -84,17 +84,23 @@
 
     if (reduced) return;
 
-    // ---- Cinematic curtain intro ----
-    var curtain = document.createElement('div');
-    curtain.className = 'page-curtain';
-    curtain.innerHTML =
-        '<div class="page-curtain-half left"><span class="page-curtain-logo">EDUPORTAL</span></div>' +
-        '<div class="page-curtain-half right"><span class="page-curtain-logo"></span></div>';
-    document.body.appendChild(curtain);
-    requestAnimationFrame(function () {
-        curtain.classList.add('opening');
-    });
-    setTimeout(function () { curtain.remove(); }, 1500);
+    // ---- Cinematic curtain intro (only on first visit this session) ----
+    var curtainShown = false;
+    try { curtainShown = sessionStorage.getItem('eduportal_curtain_shown') === '1'; } catch (err) {}
+
+    if (!curtainShown) {
+        var curtain = document.createElement('div');
+        curtain.className = 'page-curtain';
+        curtain.innerHTML =
+            '<div class="page-curtain-half left"><span class="page-curtain-logo">EDUPORTAL</span></div>' +
+            '<div class="page-curtain-half right"><span class="page-curtain-logo"></span></div>';
+        document.body.appendChild(curtain);
+        requestAnimationFrame(function () {
+            curtain.classList.add('opening');
+        });
+        setTimeout(function () { curtain.remove(); }, 1500);
+        try { sessionStorage.setItem('eduportal_curtain_shown', '1'); } catch (err) {}
+    }
 
     // ---- Particle background canvas ----
     var canvas = document.createElement('canvas');
