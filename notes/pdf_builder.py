@@ -65,11 +65,13 @@ def _draw_page_frame(canvas, doc, subject_name, chapter, class_level):
     canvas.restoreState()
 
 
-def build_notes_pdf(subject_name, chapter, class_level, sections):
+def build_notes_pdf(subject_name, chapter, class_level, sections, doc_label="CHAPTER NOTES"):
     """
     sections: list of {'heading': str, 'content': str}. Returns a Django
     ContentFile ready to assign to a FileField. Styled to match the site's
     Hall Ticket / Admit Card theme (indigo + cream + vermilion + gold).
+    doc_label is the small eyebrow label on the cover box (e.g. "CHAPTER NOTES"
+    or "SUBJECTIVE QUESTIONS") - lets other PDF types reuse this exact look.
     """
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -107,7 +109,7 @@ def build_notes_pdf(subject_name, chapter, class_level, sections):
 
     # --- Cover block: eyebrow + title + meta line, boxed like an admit card ---
     cover_inner = [
-        [Paragraph("CHAPTER NOTES", eyebrow_style)],
+        [Paragraph(doc_label, eyebrow_style)],
         [Paragraph(_escape(chapter), title_style)],
         [Paragraph(f"Class {class_level} &nbsp;&middot;&nbsp; {_escape(subject_name)} &nbsp;&middot;&nbsp; CBSE", meta_style)],
     ]
@@ -155,5 +157,6 @@ def build_notes_pdf(subject_name, chapter, class_level, sections):
         onLaterPages=lambda c, d: _draw_page_frame(c, d, subject_name, chapter, class_level),
     )
     buffer.seek(0)
-    filename = f"{subject_name}_{chapter}_notes.pdf".replace(' ', '_').replace('/', '-')
+    file_suffix = 'notes' if doc_label == "CHAPTER NOTES" else 'subjective_questions'
+    filename = f"{subject_name}_{chapter}_{file_suffix}.pdf".replace(' ', '_').replace('/', '-')
     return ContentFile(buffer.read(), name=filename)
