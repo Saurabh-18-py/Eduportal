@@ -36,6 +36,24 @@ def load_api_keys():
     return [single] if single else []
 
 
+def load_doubtsolver_api_keys():
+    """
+    A separate, reserved key (or keys) just for the live AI Doubt Solver, so
+    a heavy background job (bulk notes/MCQ/subjective-question generation)
+    burning through the shared keys' daily quota never breaks the live student
+    chat. Set GROQ_API_KEY_DOUBTSOLVER (one key) or GROQ_API_KEYS_DOUBTSOLVER
+    (comma-separated, for rotation). Falls back to the shared pool via
+    load_api_keys() if neither is set, so nothing breaks before you add one.
+    """
+    multi = os.environ.get('GROQ_API_KEYS_DOUBTSOLVER')
+    if multi:
+        return [k.strip() for k in multi.split(',') if k.strip()]
+    single = os.environ.get('GROQ_API_KEY_DOUBTSOLVER')
+    if single:
+        return [single]
+    return load_api_keys()
+
+
 def _parse_retry_after(error_text):
     match = re.search(r'try again in ([\d.]+)s', error_text)
     if match:

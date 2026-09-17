@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from mocktest.ai_helpers import load_api_keys, MCQGenerationError
+from mocktest.ai_helpers import load_doubtsolver_api_keys, MCQGenerationError
 from .doubt_ai import get_tutor_reply_with_rotation
 from .models import DoubtMessage
 
@@ -63,7 +63,7 @@ def ask_doubt(request):
     recent = DoubtMessage.objects.filter(student=request.user).order_by('-created_at')[:12]
     history = [{'role': m.role, 'content': m.content} for m in reversed(recent)]
 
-    api_keys = load_api_keys()
+    api_keys = load_doubtsolver_api_keys()
     class_level = getattr(getattr(request.user, 'profile', None), 'class_level', None)
 
     try:
