@@ -138,14 +138,22 @@ LOGOUT_REDIRECT_URL = 'home'
 # ===== Email (used for "Forgot Password" reset links) =====
 # DEV DEFAULT: prints the email to the Termux/console terminal instead of
 # actually sending it — so you can copy the reset link from there while testing.
+#
+# PRODUCTION on Render free tier: Render blocks outbound SMTP ports
+# (25/465/587) on free web services, so Gmail-SMTP sending will just hang and
+# time out there. Use the Brevo HTTPS-API backend below instead:
+#   export EMAIL_BACKEND='eduportal.email_backends.BrevoAPIEmailBackend'
+#   export BREVO_API_KEY='your-brevo-api-key'
+#   export DEFAULT_FROM_EMAIL='EduPortal <your-verified-sender@gmail.com>'
+# (sign up free at brevo.com, verify your sender email under
+# Senders & IP -> Senders, then generate a key under SMTP & API -> API Keys)
 EMAIL_BACKEND = os.environ.get(
     'EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend'
 )
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'EduPortal <noreply@eduportal.local>')
 
-# PRODUCTION: to actually send emails (e.g. via Gmail), set these env vars
-# (see README "Enable real password-reset emails" section) and switch
-# EMAIL_BACKEND to 'django.core.mail.backends.smtp.EmailBackend':
+# ALTERNATIVE (only works on a paid Render instance, or elsewhere): real SMTP
+# via Gmail. Set these env vars and switch EMAIL_BACKEND to the smtp backend:
 #   export EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
 #   export EMAIL_HOST='smtp.gmail.com'
 #   export EMAIL_PORT=587
