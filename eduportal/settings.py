@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'accounts',
     'notes',
     'mocktest',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -57,6 +58,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'accounts.context_processors.unread_messages',
+                'notifications.context_processors.vapid_public_key',
             ],
         },
     },
@@ -157,3 +159,13 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 
 # Reset link expires after 1 hour (in seconds)
 PASSWORD_RESET_TIMEOUT = 3600
+
+# ===== Web Push notifications =====
+# Generate a keypair once (see README "Web push notifications" section) and
+# set these two as environment variables on Render / in Termux. Without
+# them, the bell icon is hidden and pushes silently no-op.
+VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', '')
+VAPID_PRIVATE_KEY = os.environ.get('VAPID_PRIVATE_KEY', '')
+VAPID_CLAIMS = {
+    'sub': os.environ.get('VAPID_CLAIMS_EMAIL', 'mailto:admin@example.com')
+}

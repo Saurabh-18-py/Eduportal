@@ -41,6 +41,9 @@
                         {% endif %}
                         {{ user.username }}
                     </a>
+                    {% if VAPID_PUBLIC_KEY %}
+                        <button type="button" id="push-bell" class="push-bell" data-vapid-key="{{ VAPID_PUBLIC_KEY }}">🔕</button>
+                    {% endif %}
                     <a href="{% url 'accounts:logout' %}">Logout</a>
                 {% else %}
                     <a href="{% url 'accounts:login' %}">Login</a>
@@ -74,5 +77,6 @@
         });
     </script>
     <script src="/static/js/animations.js"></script>
+    <script src="/static/js/push.js"></script>
 </body>
 </html>
