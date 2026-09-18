@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Send Notification - EduPortal{% endblock %}
+{% block content %}
+<section class="hero">
+    <span class="eyebrow">Admin</span>
+    <h1>Send push notification</h1>
+    <p class="hero-sub">
+        {{ subscriber_count }} device{{ subscriber_count|pluralize }} subscribed.
+        {% if not vapid_configured %}
+            <strong style="color: var(--red);">VAPID keys are not set on this server — sending will fail until you add VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY as environment variables.</strong>
+        {% endif %}
+    </p>
+</section>
+
+{% if results %}
+    <div class="alert">
+        Sent: {{ results.sent }} &middot; Failed: {{ results.failed }}
+        {% for err in results.errors %}
+            <br>&bull; {{ err }}
+        {% endfor %}
+    </div>
+{% endif %}
+
+<form method="post" class="list" style="margin-top: 20px; gap: 14px; display: flex; flex-direction: column;">
+    {% csrf_token %}
+    <div>
+        <label for="id_title"><strong>Title</strong></label><br>
+        <input type="text" id="id_title" name="title" required maxlength="80"
+               placeholder="e.g. New mock test live!"
+               style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--paper-raised); font-family: var(--font-sans, inherit);">
+    </div>
+    <div>
+        <label for="id_body"><strong>Message</strong></label><br>
+        <textarea id="id_body" name="body" required maxlength="200" rows="3"
+                  placeholder="e.g. Class 10 Maths chapter-wise mock test is now available."
+                  style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--paper-raised); font-family: var(--font-sans, inherit);"></textarea>
+    </div>
+    <div>
+        <label for="id_url"><strong>Open URL when tapped</strong> (optional)</label><br>
+        <input type="text" id="id_url" name="url" placeholder="/" value="/"
+               style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--paper-raised); font-family: var(--font-sans, inherit);">
+    </div>
+    <div>
+        <label for="id_username"><strong>Only send to this username</strong> (optional — leave blank to send to everyone)</label><br>
+        <input type="text" id="id_username" name="username" placeholder="e.g. saurabh"
+               style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--paper-raised); font-family: var(--font-sans, inherit);">
+    </div>
+    <button type="submit" class="nav-cta" style="align-self: flex-start; padding: 10px 20px;">Send notification</button>
+</form>
+{% endblock %}

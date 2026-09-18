@@ -1,11 +1,14 @@
 import json
 
 from django.conf import settings
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
 from django.views.decorators.http import require_POST
 
 from .models import PushSubscription
+from .push import send_push_to_subscription
 
 
 @login_required
@@ -57,3 +60,44 @@ def service_worker(request):
     response = HttpResponse(content, content_type='application/javascript')
     response['Service-Worker-Allowed'] = '/'
     return response
+
+
+@staff_member_required
+def send_page(request):
+    """A simple in-browser page (no shell / CLI needed) for staff to fire
+    off a push notification — handy on Render's free tier, which doesn't
+    include shell access."""
+    results = None
+    subscriber_count = PushSubscription.objects.count()
+
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        body = request.POST.get('body', '').strip()
+        url = request.POST.get('url', '/').strip() or '/'
+        username = request.POST.get('username', '').strip()
+
+        qs = PushSubscription.objects.all()
+        if username:
+            qs = qs.filter(user__username=username)
+
+        sent, failed, errors = 0, 0, []
+        if not title or not body:
+            errors.append('Title and body are both required.')
+        elif not qs.exists():
+            errors.append('No matching subscriptions found.')
+        else:
+            for sub in qs:
+                ok, error = send_push_to_subscription(sub, title, body, url)
+                if ok:
+                    sent += 1
+                else:
+                    failed += 1
+                    errors.append(f'{sub.user.username}: {error}')
+
+        results = {'sent': sent, 'failed': failed, 'errors': errors}
+
+    return render(request, 'notifications/send.html', {
+        'results': results,
+        'subscriber_count': subscriber_count,
+        'vapid_configured': bool(settings.VAPID_PRIVATE_KEY),
+    })

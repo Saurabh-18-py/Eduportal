@@ -154,6 +154,41 @@ Uploaded PDFs (Notes, PYQ papers) live in Render's local storage by default, whi
 
 **4. Re-upload anything you added before this was set up** — PDFs uploaded while on local storage were on the old (now-wiped) storage and won't carry over automatically. New uploads from now on are permanent.
 
+## Web Push Notifications
+
+Logged-in users see a 🔕 bell icon in the header (next to their name). Tapping it asks browser permission and subscribes their device — the bell turns into 🔔 once subscribed. You (the admin) can then send real push notifications that arrive even if the site isn't open.
+
+**1. Generate a VAPID keypair (one-time).** These are the keys that let your server prove it's allowed to send push messages. Two were generated for you:
+```
+VAPID_PUBLIC_KEY=BK6D772QC-K9eTp4uVJ31ylWfPZ_v5GqsmYw9kvQO1hBqbEo9IUPPogQRY2RYFk2D1RnyfKjTlhX51pckQZ8K1A
+VAPID_PRIVATE_KEY=fojZIVN7P0M40jxNjEY9zu8q1Ujr2pL7ZMUyHygnorY
+```
+Keep the private key secret (never commit it). If you'd rather generate your own pair, run `python -c "from py_vapid import Vapid; v=Vapid(); v.generate_keys(); print(v.public_key, v.private_key)"` after installing `pywebpush`.
+
+**2. Set them as environment variables:**
+- **Render**: service → Environment tab → add `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and optionally `VAPID_CLAIMS_EMAIL` (defaults to a placeholder — any `mailto:` address works, it's just required by the push spec).
+- **Termux** (to test locally): `export VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=...` before `runserver`, or add to your `~/.bashrc`.
+
+Without these two variables set, the bell icon simply doesn't appear — nothing breaks.
+
+**3. Run the new migration** (creates the table that stores each device's subscription):
+```bash
+python manage.py migrate
+```
+
+**4. Send a notification.** Render's free plan doesn't include shell/SSH access, so the easiest way is the built-in page — no terminal needed:
+
+**`https://<your-app>.onrender.com/notifications/send/`** (must be logged in as a staff/superuser account)
+
+Fill in a title + message and hit send. It shows exactly how many devices got it and any errors.
+
+If you *do* have shell access (paid Render plan, or locally in Termux against a local server), the same thing works from the command line:
+```bash
+python manage.py send_push --title "New Test!" --body "Class 10 Maths mock test is live." --all
+python manage.py send_push --title "Hey Saurabh" --body "You have a message." --username saurabh
+```
+You can also select subscribers in Django Admin (`/admin/notifications/pushsubscription/`) and use the "Send a test push notification" action.
+
 ## Notes
 - Currently CBSE only — board field is already there in the Subject model, so adding other boards later just means adding more choices to `BOARD_CHOICES` in `notes/models.py` and running migrations again.
 - `DEBUG = True` and `SECRET_KEY` are set for local/dev use only — change both before putting this on the internet.
