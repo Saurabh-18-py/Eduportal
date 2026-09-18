@@ -191,9 +191,10 @@ def generate_full_subjective_set(
                 api_keys, key_index, subject_name, chapter, class_level,
                 this_batch_size, avoid_questions=avoid_list or None, on_rotate=on_rotate,
             )
-        except (RateLimitError, InvalidAPIKeyError, MCQGenerationError):
-            # Whether it's exhausted keys or a parsing hiccup, stop here and
-            # keep whatever we've already collected rather than losing it.
+        except (RateLimitError, InvalidAPIKeyError, MCQGenerationError, requests.exceptions.RequestException):
+            # Whether it's exhausted keys, a parsing hiccup, or a network
+            # blip (connection reset, timeout, etc), stop here and keep
+            # whatever we've already collected rather than losing it.
             break
 
         added = 0

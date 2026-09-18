@@ -1,6 +1,7 @@
 import os
 import time
 
+import requests
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
@@ -94,6 +95,11 @@ class Command(BaseCommand):
                         self.stdout.write(self.style.ERROR(f"    FAILED: {e}"))
                         failed.append(f"{subject_name} - {chapter_title}")
                         break
+                    except requests.exceptions.RequestException as e:
+                        self.stdout.write(self.style.WARNING(
+                            f"    network hiccup ({e.__class__.__name__}), retrying in 10s ({attempt}/{max_retries})..."
+                        ))
+                        time.sleep(10)
 
                 if sections is None:
                     if f"{subject_name} - {chapter_title}" not in failed:
