@@ -1055,10 +1055,27 @@ button::before {
 @keyframes curtain-left  { to { transform: translateX(-100%); } }
 @keyframes curtain-right { to { transform: translateX(100%); } }
 
-/* ----- Particle background canvas ----- */
-#particle-canvas {
+/* ----- Aurora glow background (premium, soft drifting color blobs) ----- */
+.aurora-bg {
     position: fixed; inset: 0; z-index: 0;
-    pointer-events: none; opacity: 0.9;
+    overflow: hidden; pointer-events: none;
+}
+.aurora-blob {
+    position: absolute;
+    width: 46vmax; height: 46vmax;
+    border-radius: 50%;
+    filter: blur(70px);
+    opacity: 0.3;
+    mix-blend-mode: multiply;
+    animation: aurora-drift 26s ease-in-out infinite;
+}
+.aurora-blob.a1 { background: radial-gradient(circle, var(--red), transparent 70%); top: -14%; left: -12%; animation-duration: 24s; }
+.aurora-blob.a2 { background: radial-gradient(circle, var(--gold), transparent 70%); bottom: -18%; right: -8%; animation-duration: 30s; animation-delay: -8s; }
+.aurora-blob.a3 { background: radial-gradient(circle, var(--teal), transparent 70%); top: 28%; right: 14%; animation-duration: 34s; animation-delay: -16s; }
+@keyframes aurora-drift {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33%      { transform: translate(6%, 8%) scale(1.12); }
+    66%      { transform: translate(-6%, 5%) scale(0.94); }
 }
 main.container, .ticket-header { position: relative; z-index: 1; }
 
@@ -1092,20 +1109,33 @@ main.container, .ticket-header { position: relative; z-index: 1; }
     to { transform: scale(0) translateY(-14px); opacity: 0; }
 }
 
-/* ----- Confetti burst ----- */
-.confetti-piece {
-    position: fixed; z-index: 9998; pointer-events: none;
-    width: 8px; height: 12px;
-    animation: confetti-fall 1.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-@keyframes confetti-fall {
-    0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-    100% { transform: var(--confetti-end); opacity: 0; }
-}
-
+/* =========================================================================
+   ===== Reduced motion: everything falls back to a clean, static look =====
+   ========================================================================= */
 @media (prefers-reduced-motion: reduce) {
-    .page-curtain, #particle-canvas, .sparkle, .confetti-piece { display: none !important; }
-    .neon-glow, .hero.anim-hero-in { animation: none !important; }
+    .page-curtain, .aurora-bg, .sparkle { display: none !important; }
+
+    * {
+        animation-duration: 0.001ms !important;
+        animation-delay: 0ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        transition-delay: 0ms !important;
+    }
+
+    .ticket-header, .hero, .hero .eyebrow, .hero .hero-sub, .hero h1,
+    .reveal, .reveal-in, .alert, .hall-ticket, .hall-ticket-barcode, .hall-ticket-stub,
+    .list-item {
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+    }
+    .hero h1 {
+        -webkit-text-fill-color: var(--ink) !important;
+        background: none !important;
+    }
+    .neon-glow, .hall-ticket { box-shadow: none !important; }
+    .eyebrow::before { animation: none !important; box-shadow: none !important; }
 }
 
 /* ----- Notification bell ----- */
