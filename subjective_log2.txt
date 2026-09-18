@@ -1,0 +1,123 @@
+nohup: ignoring input
+Starting bulk subjective-questions generation: 398 chapters, target 50 questions each.
+[1/398] skip - Class 9 Mathematics - introduction to linear polynomials (already exists)
+[2/398] skip - Class 9 Mathematics - The use of coordinates (already exists)
+[3/398] skip - Class 9 Mathematics - The world of numbers (already exists)
+[4/398] skip - Class 9 Mathematics - Introduction to euclids geometry (already exists)
+[5/398] skip - Class 9 Mathematics - lines and angles (already exists)
+[6/398] skip - Class 9 Mathematics - Triangles Congruence Theorems (already exists)
+[7/398] skip - Class 9 Mathematics - Mensuration area and perimeter (already exists)
+[8/398] skip - Class 9 Mathematics - Exploring algebraic Identities (already exists)
+[9/398] skip - Class 9 Mathematics - The mathematics of maybe (already exists)
+[10/398] skip - Class 9 Mathematics - Statistics (already exists)
+[11/398] skip - Class 9 Mathematics - Linear Equations in two variables (already exists)
+[12/398] skip - Class 9 Mathematics - Quadrilaterals (already exists)
+[13/398] skip - Class 9 Mathematics - Mensuration surface area and volume (already exists)
+[14/398] skip - Class 9 Mathematics - Sequences and Pogressions (already exists)
+[15/398] skip - Class 9 Mathematics - Circles (already exists)
+[16/398] skip - Class 9 Science - The cell (already exists)
+[17/398] skip - Class 9 Science - Sound (already exists)
+[18/398] skip - Class 9 Science - Work,Energy and Simple Machines (already exists)
+[19/398] skip - Class 9 Science - Force and laws of Motion (already exists)
+[20/398] skip - Class 9 Science - Motion (already exists)
+[21/398] skip - Class 9 Science - Earth as a System Energy Matter and life (already exists)
+[22/398] skip - Class 9 Science - Atoms and Molecules (already exists)
+[23/398] skip - Class 9 Science - Structure of an Atom (already exists)
+[24/398] skip - Class 9 Science - Exploring Mixtures and Their Separation (already exists)
+[25/398] skip - Class 9 Science - Diversity (already exists)
+[26/398] skip - Class 9 Science - Cell (already exists)
+[27/398] skip - Class 9 Science - Reproduction (already exists)
+[28/398] skip - Class 9 Science - Tissues (already exists)
+[29/398] skip - Class 9 Social Science - understanding social science (already exists)
+[30/398] skip - Class 9 Social Science - Shaping of the earth s surface (already exists)
+[31/398] skip - Class 9 Social Science - Atmosphere and climate (already exists)
+[32/398] Generating: Class 9 Social Science - Early humans and beginning of civilisation (target 50) ...
+    batch 1: 15/50 collected so far...
+    batch 2: 30/50 collected so far...
+    batch 3: 46/50 collected so far...
+    batch 4: 50/50 collected so far...
+    FAILED to build/save PDF: value too long for type character varying(100)
+[33/398] skip - Class 9 Social Science - Smart ways to manage your finances (already exists)
+[34/398] skip - Class 9 Social Science - From ideas to startups (already exists)
+[35/398] Generating: Class 9 Social Science - India and the world i 1900 bce 1200 ce (target 50) ...
+    batch 1: 15/50 collected so far...
+    batch 2: 31/50 collected so far...
+    batch 3: 44/50 collected so far...
+    batch 4: 49/50 collected so far...
+    batch 5: 50/50 collected so far...
+    FAILED to build/save PDF: value too long for type character varying(100)
+[36/398] skip - Class 9 Social Science - Authority (already exists)
+[37/398] Generating: Class 9 Social Science - Resistance and resilience 1000 ce 1700 ce (target 50) ...
+    batch 1: 15/50 collected so far...
+    batch 2: 31/50 collected so far...
+    batch 3: 47/50 collected so far...
+    batch 4: 50/50 collected so far...
+    FAILED to build/save PDF: value too long for type character varying(100)
+[38/398] Generating: Class 9 Social Science - The price puzzle what drives the market (target 50) ...
+    batch 1: 15/50 collected so far...
+    batch 2: 30/50 collected so far...
+    batch 3: 45/50 collected so far...
+    batch 4: 50/50 collected so far...
+    FAILED to build/save PDF: value too long for type character varying(100)
+[39/398] skip - Class 9 Social Science - Life on earth (already exists)
+[40/398] skip - Class 9 Social Science - Oceans and life (already exists)
+[41/398] skip - Class 9 Social Science - Democracy (already exists)
+[42/398] skip - Class 9 Social Science - Building blocks in economics (already exists)
+[43/398] skip - Class 9 Social Science - Elections (already exists)
+[44/398] skip - Class 9 Social Science - State and society up to 1000 ce (already exists)
+[45/398] skip - Class 10 Mathematics - Polynomials (already exists)
+[46/398] skip - Class 10 Mathematics - Real Numbers (already exists)
+[47/398] Generating: Class 10 Mathematics - Pair of Linear Equations in Two Variables (target 50) ...
+    batch 1: 14/50 collected so far...
+    batch 2: 29/50 collected so far...
+    key 0 exhausted, rotating to key 1...
+    batch 3: 44/50 collected so far...
+    batch 4: 50/50 collected so far...
+    FAILED to build/save PDF: value too long for type character varying(100)
+[48/398] skip - Class 10 Mathematics - Quadratic Equations (already exists)
+[49/398] skip - Class 10 Mathematics - Arithmetic Progressions (already exists)
+[50/398] skip - Class 10 Mathematics - Triangles (already exists)
+[51/398] skip - Class 10 Mathematics - Coordinate Geometry (already exists)
+[52/398] skip - Class 10 Mathematics - Introduction to Trigonometry (already exists)
+[53/398] skip - Class 10 Mathematics - Circles (already exists)
+[54/398] skip - Class 10 Mathematics - Some Applications of Trigonometry (already exists)
+[55/398] skip - Class 10 Mathematics - Areas Related to Circles (already exists)
+[56/398] skip - Class 10 Mathematics - Surface Areas and Volumes (already exists)
+[57/398] skip - Class 10 Mathematics - Probability (already exists)
+[58/398] skip - Class 10 Mathematics - Statistics (already exists)
+[59/398] skip - Class 10 Science - Our Environment (already exists)
+[60/398] skip - Class 10 Science - Magnetic Effects of Electric Current (already exists)
+[61/398] skip - Class 10 Science - Electricity (already exists)
+[62/398] skip - Class 10 Science - Human Eye and Colourful World (already exists)
+[63/398] skip - Class 10 Science - Light Reflection and Refraction (already exists)
+[64/398] skip - Class 10 Science - Heredity (already exists)
+[65/398] skip - Class 10 Science - How do Organisms Reproduce (already exists)
+[66/398] skip - Class 10 Science - Control and Coordination (already exists)
+[67/398] skip - Class 10 Science - Life Processes (already exists)
+[68/398] skip - Class 10 Science - Carbon and its Compounds (already exists)
+[69/398] skip - Class 10 Science - Metals and Non Metals (already exists)
+[70/398] skip - Class 10 Science - Acids Bases and Salts (already exists)
+[71/398] skip - Class 10 Science - Chemical Reactions and Equations (already exists)
+[72/398] skip - Class 10 Social Science - The Rise of Nationalism in Europe (already exists)
+[73/398] skip - Class 10 Social Science - The Making of a Global World (already exists)
+[74/398] skip - Class 10 Social Science - Nationalism in India (already exists)
+[75/398] skip - Class 10 Social Science - Print Culture and the Modern World (already exists)
+[76/398] Generating: Class 10 Social Science - Resources and Development (target 50) ...
+    batch 1: 15/50 collected so far...
+    batch 2: 30/50 collected so far...
+    batch 3: 44/50 collected so far...
+    key 1 exhausted, rotating to key 2...
+    batch 4: 48/50 collected so far...
+    batch 5: 50/50 collected so far...
+    done - 50 questions saved as PDF.
+[77/398] skip - Class 10 Social Science - Forest and Wildlife Resources (already exists)
+[78/398] skip - Class 10 Social Science - Water Resources (already exists)
+[79/398] skip - Class 10 Social Science - Agriculture (already exists)
+[80/398] skip - Class 10 Social Science - Minerals and Energy Resources (already exists)
+[81/398] skip - Class 10 Social Science - Manufacturing Industries (already exists)
+[82/398] skip - Class 10 Social Science - Power Sharing (already exists)
+[83/398] skip - Class 10 Social Science - Political Parties (already exists)
+[84/398] skip - Class 10 Social Science - Gender Religion and Caste (already exists)
+[85/398] Generating: Class 10 Social Science - Federalism (target 50) ...
+    batch 1: 15/50 collected so far...
+    batch 2: 30/50 collected so far...

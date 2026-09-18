@@ -64,6 +64,8 @@ class Command(BaseCommand):
             for chapter_title in chapters:
                 progress += 1
                 note_title = f"{chapter_title} - Notes"
+                if len(note_title) > 95:
+                    note_title = f"{chapter_title[:87].rstrip()}... - Notes"
 
                 chapter, _ = Chapter.objects.get_or_create(
                     subject=subject,

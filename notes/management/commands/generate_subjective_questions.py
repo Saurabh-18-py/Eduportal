@@ -66,6 +66,12 @@ class Command(BaseCommand):
             progress += 1
             subject_name = chapter.subject.name
             note_title = f"{chapter.title} - {NOTE_TITLE_SUFFIX}"
+            if len(note_title) > 95:
+                # Some chapter titles are long enough to blow past the DB
+                # column limit once the suffix is added - trim the chapter
+                # part only, keep the "- Subjective Questions" suffix intact.
+                max_chapter_len = 95 - len(f" - {NOTE_TITLE_SUFFIX}") - 1
+                note_title = f"{chapter.title[:max_chapter_len].rstrip()}... - {NOTE_TITLE_SUFFIX}"
             label = f"Class {chapter.subject.class_level} {subject_name} - {chapter.title}"
 
             if Note.objects.filter(chapter=chapter, title=note_title).exists():
