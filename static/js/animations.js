@@ -4,7 +4,7 @@
 
     // ---- Header drop-in ----
     var header = document.querySelector('.ticket-header');
-    if (header) header.classList.add(reduced ? '' : 'anim-header-in');
+    if (header && !reduced) header.classList.add('anim-header-in');
 
     // ---- Hero: reveal (whole block handles its own cinematic zoom-in via CSS) ----
     var hero = document.querySelector('.hero');
