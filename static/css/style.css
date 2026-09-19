@@ -480,6 +480,33 @@ h2 {
 
 .chat-form textarea { width: 100%; resize: vertical; }
 
+/* Chat input bar: override the narrow login-form box styling it was
+   accidentally inheriting from .form, and lay out as textarea + button */
+.chat-form {
+    max-width: none;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 10px;
+    border-top: none;
+}
+.chat-form textarea {
+    flex: 1;
+    min-height: 44px;
+    max-height: 160px;
+}
+.chat-form button {
+    margin-top: 0;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+button:disabled:hover { background: var(--ink); }
+.chat-bubble { overflow-wrap: break-word; word-break: break-word; }
+
 .btn-small {
     background: var(--ink);
     color: var(--paper);
