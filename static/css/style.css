@@ -1,6 +1,6 @@
 /* ===== Design tokens ===== */
 :root {
-    color-scheme: light;
+    color-scheme: only light;
     --ink: #1B1B3A;
     --ink-soft: #4A4A68;
     --paper: #FAF6EC;
@@ -31,11 +31,14 @@ a { color: inherit; }
 /* ===== Header / Hall ticket strip ===== */
 .ticket-header {
     background: var(--ink);
-    color: var(--paper);
+    color: var(--paper) !important;
     position: relative;
     z-index: 2;
     isolation: isolate;
 }
+.ticket-header * { color: var(--paper) !important; }
+.ticket-header .brand-text small { color: var(--gold) !important; }
+.ticket-header .nav-cta { color: var(--ink) !important; }
 
 .ticket-header-inner {
     max-width: 1000px;
