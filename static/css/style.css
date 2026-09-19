@@ -1,5 +1,6 @@
 /* ===== Design tokens ===== */
 :root {
+    color-scheme: light;
     --ink: #1B1B3A;
     --ink-soft: #4A4A68;
     --paper: #FAF6EC;
@@ -32,6 +33,8 @@ a { color: inherit; }
     background: var(--ink);
     color: var(--paper);
     position: relative;
+    z-index: 2;
+    isolation: isolate;
 }
 
 .ticket-header-inner {
@@ -1065,8 +1068,7 @@ button::before {
     width: 46vmax; height: 46vmax;
     border-radius: 50%;
     filter: blur(70px);
-    opacity: 0.3;
-    mix-blend-mode: multiply;
+    opacity: 0.22;
     animation: aurora-drift 26s ease-in-out infinite;
 }
 .aurora-blob.a1 { background: radial-gradient(circle, var(--red), transparent 70%); top: -14%; left: -12%; animation-duration: 24s; }
@@ -1077,7 +1079,7 @@ button::before {
     33%      { transform: translate(6%, 8%) scale(1.12); }
     66%      { transform: translate(-6%, 5%) scale(0.94); }
 }
-main.container, .ticket-header { position: relative; z-index: 1; }
+main.container { position: relative; z-index: 1; }
 
 /* ----- Neon glow (cycling theme-colored) ----- */
 .neon-glow {
