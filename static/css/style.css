@@ -455,6 +455,7 @@ h2 {
 
 .chat-bubble {
     max-width: 78%;
+    min-width: 0;
     padding: 10px 14px;
     border-radius: 14px;
     background: var(--paper-raised);
@@ -505,7 +506,8 @@ button:disabled {
     cursor: not-allowed;
 }
 button:disabled:hover { background: var(--ink); }
-.chat-bubble { overflow-wrap: break-word; word-break: break-word; }
+.chat-bubble { overflow-wrap: break-word; }
+.chat-bubble mjx-container { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
 
 .btn-small {
     background: var(--ink);
