@@ -158,5 +158,12 @@ def build_notes_pdf(subject_name, chapter, class_level, sections, doc_label="CHA
     )
     buffer.seek(0)
     file_suffix = 'notes' if doc_label == "CHAPTER NOTES" else 'subjective_questions'
-    filename = f"{subject_name}_{chapter}_{file_suffix}.pdf".replace(' ', '_').replace('/', '-')
+    # Django's FileField defaults to a 100-char DB column for the stored
+    # filename (including the upload_to path prefix), so keep the generated
+    # name well under that regardless of how long the subject/chapter is.
+    raw_name = f"{subject_name}_{chapter}".replace(' ', '_').replace('/', '-')
+    max_raw_len = 45  # leaves room for "notes_pdfs/" + "_subjective_questions.pdf" + a hash suffix Django may add
+    if len(raw_name) > max_raw_len:
+        raw_name = raw_name[:max_raw_len].rstrip('_')
+    filename = f"{raw_name}_{file_suffix}.pdf"
     return ContentFile(buffer.read(), name=filename)

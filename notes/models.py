@@ -47,7 +47,7 @@ class Chapter(models.Model):
 class Note(models.Model):
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='notes')
     title = models.CharField(max_length=200)
-    pdf_file = models.FileField(upload_to='notes_pdfs/', storage=PDF_STORAGE)
+    pdf_file = models.FileField(upload_to='notes_pdfs/', storage=PDF_STORAGE, max_length=255)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -59,7 +59,7 @@ class PYQPaper(models.Model):
     year = models.PositiveIntegerField()
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='pyq_papers')
     set_label = models.CharField(max_length=50, blank=True, help_text='Optional, e.g. "Set 1" if multiple sets exist')
-    pdf_file = models.FileField(upload_to='pyq_papers/', storage=PDF_STORAGE)
+    pdf_file = models.FileField(upload_to='pyq_papers/', storage=PDF_STORAGE, max_length=255)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
