@@ -1,0 +1,58 @@
+nohup: ignoring input
+Starting bulk subjective-questions generation: 47 chapters, target 50 questions each.
+[1/47] skip - Class 10 Mathematics - Polynomials (already exists)
+[2/47] skip - Class 10 Mathematics - Real Numbers (already exists)
+[3/47] Generating: Class 10 Mathematics - Pair of Linear Equations in Two Variables (target 50) ...
+    batch 1: 14/50 collected so far...
+    key 0 exhausted, rotating to key 1...
+    batch 2: 29/50 collected so far...
+    batch 3: 41/50 collected so far...
+    key 1 exhausted, rotating to key 2...
+    batch 4: 50/50 collected so far...
+    done - 50 questions saved as PDF.
+[4/47] skip - Class 10 Mathematics - Quadratic Equations (already exists)
+[5/47] skip - Class 10 Mathematics - Arithmetic Progressions (already exists)
+[6/47] skip - Class 10 Mathematics - Triangles (already exists)
+[7/47] skip - Class 10 Mathematics - Coordinate Geometry (already exists)
+[8/47] skip - Class 10 Mathematics - Introduction to Trigonometry (already exists)
+[9/47] skip - Class 10 Mathematics - Circles (already exists)
+[10/47] skip - Class 10 Mathematics - Some Applications of Trigonometry (already exists)
+[11/47] skip - Class 10 Mathematics - Areas Related to Circles (already exists)
+[12/47] skip - Class 10 Mathematics - Surface Areas and Volumes (already exists)
+[13/47] skip - Class 10 Mathematics - Probability (already exists)
+[14/47] skip - Class 10 Mathematics - Statistics (already exists)
+[15/47] skip - Class 10 Science - Our Environment (already exists)
+[16/47] skip - Class 10 Science - Magnetic Effects of Electric Current (already exists)
+[17/47] skip - Class 10 Science - Electricity (already exists)
+[18/47] skip - Class 10 Science - Human Eye and Colourful World (already exists)
+[19/47] skip - Class 10 Science - Light Reflection and Refraction (already exists)
+[20/47] skip - Class 10 Science - Heredity (already exists)
+[21/47] skip - Class 10 Science - How do Organisms Reproduce (already exists)
+[22/47] skip - Class 10 Science - Control and Coordination (already exists)
+[23/47] skip - Class 10 Science - Life Processes (already exists)
+[24/47] skip - Class 10 Science - Carbon and its Compounds (already exists)
+[25/47] skip - Class 10 Science - Metals and Non Metals (already exists)
+[26/47] skip - Class 10 Science - Acids Bases and Salts (already exists)
+[27/47] skip - Class 10 Science - Chemical Reactions and Equations (already exists)
+[28/47] skip - Class 10 Social Science - The Rise of Nationalism in Europe (already exists)
+[29/47] skip - Class 10 Social Science - The Making of a Global World (already exists)
+[30/47] skip - Class 10 Social Science - Nationalism in India (already exists)
+[31/47] skip - Class 10 Social Science - Print Culture and the Modern World (already exists)
+[32/47] skip - Class 10 Social Science - Resources and Development (already exists)
+[33/47] skip - Class 10 Social Science - Forest and Wildlife Resources (already exists)
+[34/47] skip - Class 10 Social Science - Water Resources (already exists)
+[35/47] skip - Class 10 Social Science - Agriculture (already exists)
+[36/47] skip - Class 10 Social Science - Minerals and Energy Resources (already exists)
+[37/47] skip - Class 10 Social Science - Manufacturing Industries (already exists)
+[38/47] skip - Class 10 Social Science - Power Sharing (already exists)
+[39/47] skip - Class 10 Social Science - Political Parties (already exists)
+[40/47] skip - Class 10 Social Science - Gender Religion and Caste (already exists)
+[41/47] skip - Class 10 Social Science - Federalism (already exists)
+[42/47] skip - Class 10 Social Science - Lifelines of National Economy (already exists)
+[43/47] skip - Class 10 Social Science - Outcomes of Democracy (already exists)
+[44/47] skip - Class 10 Social Science - Development (already exists)
+[45/47] skip - Class 10 Social Science - Sectors of the Indian Economy (already exists)
+[46/47] skip - Class 10 Social Science - Globalisation and the Indian Economy (already exists)
+[47/47] skip - Class 10 Social Science - Money and Credit (already exists)
+
+Finished. Created: 1, Skipped (already existed): 46, Failed: 0

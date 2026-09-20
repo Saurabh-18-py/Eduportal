@@ -1,0 +1,68 @@
+nohup: ignoring input
+Starting bulk subjective-questions generation: 44 chapters, target 50 questions each.
+[1/44] skip - Class 9 Mathematics - introduction to linear polynomials (already exists)
+[2/44] skip - Class 9 Mathematics - The use of coordinates (already exists)
+[3/44] skip - Class 9 Mathematics - The world of numbers (already exists)
+[4/44] skip - Class 9 Mathematics - Introduction to euclids geometry (already exists)
+[5/44] skip - Class 9 Mathematics - lines and angles (already exists)
+[6/44] skip - Class 9 Mathematics - Triangles Congruence Theorems (already exists)
+[7/44] skip - Class 9 Mathematics - Mensuration area and perimeter (already exists)
+[8/44] skip - Class 9 Mathematics - Exploring algebraic Identities (already exists)
+[9/44] skip - Class 9 Mathematics - The mathematics of maybe (already exists)
+[10/44] skip - Class 9 Mathematics - Statistics (already exists)
+[11/44] skip - Class 9 Mathematics - Linear Equations in two variables (already exists)
+[12/44] skip - Class 9 Mathematics - Quadrilaterals (already exists)
+[13/44] skip - Class 9 Mathematics - Mensuration surface area and volume (already exists)
+[14/44] skip - Class 9 Mathematics - Sequences and Pogressions (already exists)
+[15/44] skip - Class 9 Mathematics - Circles (already exists)
+[16/44] skip - Class 9 Science - The cell (already exists)
+[17/44] skip - Class 9 Science - Sound (already exists)
+[18/44] skip - Class 9 Science - Work,Energy and Simple Machines (already exists)
+[19/44] skip - Class 9 Science - Force and laws of Motion (already exists)
+[20/44] skip - Class 9 Science - Motion (already exists)
+[21/44] skip - Class 9 Science - Earth as a System Energy Matter and life (already exists)
+[22/44] skip - Class 9 Science - Atoms and Molecules (already exists)
+[23/44] skip - Class 9 Science - Structure of an Atom (already exists)
+[24/44] skip - Class 9 Science - Exploring Mixtures and Their Separation (already exists)
+[25/44] skip - Class 9 Science - Diversity (already exists)
+[26/44] skip - Class 9 Science - Cell (already exists)
+[27/44] skip - Class 9 Science - Reproduction (already exists)
+[28/44] skip - Class 9 Science - Tissues (already exists)
+[29/44] skip - Class 9 Social Science - understanding social science (already exists)
+[30/44] skip - Class 9 Social Science - Shaping of the earth s surface (already exists)
+[31/44] skip - Class 9 Social Science - Atmosphere and climate (already exists)
+[32/44] Generating: Class 9 Social Science - Early humans and beginning of civilisation (target 50) ...
+    batch 1: 15/50 collected so far...
+    batch 2: 30/50 collected so far...
+    batch 3: 46/50 collected so far...
+    batch 4: 50/50 collected so far...
+    done - 50 questions saved as PDF.
+[33/44] skip - Class 9 Social Science - Smart ways to manage your finances (already exists)
+[34/44] skip - Class 9 Social Science - From ideas to startups (already exists)
+[35/44] Generating: Class 9 Social Science - India and the world i 1900 bce 1200 ce (target 50) ...
+    batch 1: 15/50 collected so far...
+    batch 2: 28/50 collected so far...
+    batch 3: 42/50 collected so far...
+    batch 4: 50/50 collected so far...
+    done - 50 questions saved as PDF.
+[36/44] skip - Class 9 Social Science - Authority (already exists)
+[37/44] Generating: Class 9 Social Science - Resistance and resilience 1000 ce 1700 ce (target 50) ...
+    batch 1: 16/50 collected so far...
+    batch 2: 32/50 collected so far...
+    batch 3: 46/50 collected so far...
+    batch 4: 50/50 collected so far...
+    done - 50 questions saved as PDF.
+[38/44] Generating: Class 9 Social Science - The price puzzle what drives the market (target 50) ...
+    batch 1: 15/50 collected so far...
+    batch 2: 29/50 collected so far...
+    batch 3: 43/50 collected so far...
+    batch 4: 50/50 collected so far...
+    done - 50 questions saved as PDF.
+[39/44] skip - Class 9 Social Science - Life on earth (already exists)
+[40/44] skip - Class 9 Social Science - Oceans and life (already exists)
+[41/44] skip - Class 9 Social Science - Democracy (already exists)
+[42/44] skip - Class 9 Social Science - Building blocks in economics (already exists)
+[43/44] skip - Class 9 Social Science - Elections (already exists)
+[44/44] skip - Class 9 Social Science - State and society up to 1000 ce (already exists)
+
+Finished. Created: 4, Skipped (already existed): 40, Failed: 0

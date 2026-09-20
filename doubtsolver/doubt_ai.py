@@ -1,3 +1,5 @@
+import re
+
 import requests
 
 from mocktest.ai_helpers import (
@@ -12,6 +14,16 @@ from mocktest.ai_helpers import (
 MAX_HISTORY_MESSAGES = 12  # keep the last N messages (both roles) as context
 
 
+def _strip_stray_markdown(text):
+    """Safety net: the model is told not to use markdown, but if it slips up
+    anyway, drop the ** / __ / # markers rather than showing them literally
+    in the plain-text chat bubble. Left untouched: \\( \\) \\[ \\] (LaTeX)."""
+    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
+    text = re.sub(r'__(.+?)__', r'\1', text)
+    text = re.sub(r'^#{1,6}\s*', '', text, flags=re.MULTILINE)
+    return text
+
+
 def _system_prompt(class_level):
     guardrail = (
         "You ONLY help with academic doubts and questions from the student's CBSE school syllabus "
@@ -23,20 +35,41 @@ def _system_prompt(class_level):
         "reply briefly and kindly that you're only here to help with study doubts, and ask what topic "
         "they're stuck on - in ONE short sentence, don't lecture them."
     )
+    formatting = (
+        "FORMATTING - this is a plain-text chat bubble, not a markdown renderer, so:\n"
+        "- Never use markdown symbols: no **bold**, no *italics*, no # headings, no backticks, no markdown "
+        "bullet dashes. If you emphasize a word, just write it plainly or in CAPS, don't wrap it in "
+        "asterisks - literal ** characters will show up in the chat and look broken.\n"
+        "- For maths, use LaTeX delimited with \\( ... \\) inline or \\[ ... \\] for a standalone line "
+        "(this chat renders LaTeX), not markdown.\n"
+        "- For step-by-step lists, use plain numbering on its own line: '1. ...', '2. ...' etc, one step "
+        "per line - do not use markdown list syntax."
+    )
+    style = (
+        "STYLE - answer the way full marks are awarded on a CBSE answer sheet, and nothing more:\n"
+        "- For a numerical/derivation/proof question: write 'Given:' (only if the question supplies data), "
+        "then numbered solution steps - each step is one short line of working, not a paragraph - then a "
+        "final line starting 'Answer:' with the result. Skip steps a CBSE examiner wouldn't expect written "
+        "out (don't re-derive standard formulas from scratch).\n"
+        "- For a conceptual/theory question: 3-5 short numbered points covering exactly what's needed for "
+        "full marks - definition/reason first, then supporting points, then a one-line example only if it "
+        "genuinely clarifies. No extra background, no restating the question, no long intro sentence before "
+        "you start answering.\n"
+        "- Total reply length: aim for well under 150 words unless the question is a multi-part numerical "
+        "that genuinely needs more steps. If you catch yourself writing a 4th paragraph, cut it down instead."
+    )
     if class_level:
         return (
             f"You are a friendly, patient AI tutor on EduPortal, helping a CBSE Class {class_level} "
-            f"student with their doubts. Explain clearly and step by step, matching the depth of the "
-            f"official CBSE NCERT Class {class_level} syllabus - don't casually bring in concepts from "
-            f"a higher class. Use short paragraphs and a concrete example wherever it helps. If the "
-            f"question is ambiguous, ask a brief clarifying question instead of guessing. Keep replies "
-            f"focused - a few short paragraphs at most, not an essay.\n\n{guardrail}"
+            f"student with their doubts, matching the depth of the official CBSE NCERT Class {class_level} "
+            f"syllabus - don't casually bring in concepts from a higher class. If the question is "
+            f"ambiguous, ask a brief clarifying question instead of guessing.\n\n{style}\n\n{formatting}"
+            f"\n\n{guardrail}"
         )
     return (
         "You are a friendly, patient AI tutor on EduPortal, helping a CBSE school student with their "
-        "doubts. Explain clearly and step by step. Use short paragraphs and a concrete example wherever "
-        "it helps. If the question is ambiguous, ask a brief clarifying question instead of guessing. "
-        f"Keep replies focused - a few short paragraphs at most, not an essay.\n\n{guardrail}"
+        "doubts. If the question is ambiguous, ask a brief clarifying question instead of guessing.\n\n"
+        f"{style}\n\n{formatting}\n\n{guardrail}"
     )
 
 
@@ -77,7 +110,7 @@ def _request_reply_from_groq(api_key, class_level, history):
     reply = data['choices'][0]['message']['content'].strip()
     if not reply:
         raise MCQGenerationError("AI returned an empty reply.")
-    return reply, response.headers
+    return _strip_stray_markdown(reply), response.headers
 
 
 def get_tutor_reply_with_rotation(api_keys, key_index, class_level, history, on_rotate=None):
