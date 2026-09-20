@@ -1,8 +1,12 @@
+from datetime import timedelta
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import Http404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib import messages
+from django.db.models import Avg, F, FloatField
+from django.db.models.functions import Cast
 
 from notes.models import Subject
 from .models import Test, TestAttempt, StudentAnswer, Choice
@@ -80,7 +84,54 @@ def result_view(request, attempt_id):
     })
 
 
+def _calculate_streak(activity_dates):
+    """activity_dates: a set of date objects the student did something on.
+    Counts backwards from today (or yesterday, if nothing today yet)."""
+    if not activity_dates:
+        return 0
+    today = timezone.localdate()
+    cursor = today if today in activity_dates else today - timedelta(days=1)
+    streak = 0
+    while cursor in activity_dates:
+        streak += 1
+        cursor -= timedelta(days=1)
+    return streak
+
+
 @login_required
 def my_attempts_view(request):
-    attempts = request.user.attempts.select_related('test').order_by('-started_at')
-    return render(request, 'mocktest/my_attempts.html', {'attempts': attempts})
+    attempts = request.user.attempts.select_related('test', 'test__subject').order_by('-started_at')
+    graded = attempts.filter(total__gt=0)
+
+    overall_avg = None
+    if graded.exists():
+        overall_avg = round(
+            graded.annotate(pct=Cast(F('score'), FloatField()) * 100.0 / F('total')).aggregate(a=Avg('pct'))['a']
+        )
+
+    subject_stats = list(
+        graded.values('test__subject__name')
+        .annotate(pct=Avg(Cast(F('score'), FloatField()) * 100.0 / F('total')))
+        .order_by('-pct')
+    )
+    for s in subject_stats:
+        s['pct'] = round(s['pct'])
+
+    chapters_practiced = attempts.values('test_id').distinct().count()
+
+    # Streak: any day with a test attempt or a doubt asked counts as "studied".
+    from doubtsolver.models import DoubtMessage
+    activity_dates = set(attempts.dates('started_at', 'day'))
+    activity_dates |= set(
+        DoubtMessage.objects.filter(student=request.user, role='user').dates('created_at', 'day')
+    )
+    streak = _calculate_streak(activity_dates)
+
+    return render(request, 'mocktest/my_attempts.html', {
+        'attempts': attempts,
+        'overall_avg': overall_avg,
+        'tests_taken': attempts.count(),
+        'chapters_practiced': chapters_practiced,
+        'subject_stats': subject_stats,
+        'streak': streak,
+    })

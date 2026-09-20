@@ -2,7 +2,43 @@
 {% block title %}My Results{% endblock %}
 {% block content %}
 <span class="eyebrow">Report Card</span>
-<h1>My Test Results</h1>
+<h1>My Progress</h1>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <span class="stat-num">{{ streak }}{% if streak > 0 %} 🔥{% endif %}</span>
+        <span class="stat-label">day streak</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-num">{{ tests_taken }}</span>
+        <span class="stat-label">tests taken</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-num">{% if overall_avg is not None %}{{ overall_avg }}%{% else %}—{% endif %}</span>
+        <span class="stat-label">average score</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-num">{{ chapters_practiced }}</span>
+        <span class="stat-label">chapters practiced</span>
+    </div>
+</div>
+
+{% if subject_stats %}
+<h2 class="section-heading">By subject</h2>
+<div class="subject-bars">
+    {% for s in subject_stats %}
+    <div class="subject-bar-row">
+        <span class="subject-bar-label">{{ s.test__subject__name }}</span>
+        <div class="subject-bar-track">
+            <div class="subject-bar-fill" style="width: {{ s.pct }}%;"></div>
+        </div>
+        <span class="subject-bar-pct">{{ s.pct }}%</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<h2 class="section-heading">Test history</h2>
 <div class="list">
     {% for attempt in attempts %}
     <a class="list-item" href="{% url 'mocktest:result' attempt.id %}">

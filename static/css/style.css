@@ -854,3 +854,43 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--teal); outline-
 @media (max-width: 420px) {
     .install-banner-text { font-size: 0.8rem; }
 }
+
+/* ----- Subject-wise performance bars (progress dashboard) ----- */
+.subject-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+.subject-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.subject-bar-label {
+    width: 120px;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+.subject-bar-track {
+    flex: 1;
+    height: 10px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+}
+.subject-bar-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 6px;
+}
+.subject-bar-pct {
+    width: 40px;
+    flex-shrink: 0;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+}
