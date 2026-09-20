@@ -109,7 +109,7 @@ class Command(BaseCommand):
                     doc_label="SUBJECTIVE QUESTIONS",
                 )
                 with transaction.atomic():
-                    note = Note(chapter=chapter, title=note_title)
+                    note = Note(chapter=chapter, title=note_title, resource_type='subjective')
                     note.pdf_file.save(pdf_file.name, pdf_file, save=True)
                 self.stdout.write(self.style.SUCCESS(f"    done - {len(questions)} questions saved as PDF."))
                 done += 1

@@ -316,6 +316,59 @@ h2 {
 
 .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
 
+/* ===== Notes / Subjective Questions resource cards ===== */
+.resource-section-title {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    color: var(--ink);
+    margin: 28px 0 4px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--rule);
+}
+
+.resource-card {
+    background: var(--paper-raised);
+    padding: 16px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.resource-notes { border-left: 4px solid var(--teal); }
+.resource-subjective { border-left: 4px solid var(--gold); }
+
+.resource-icon {
+    font-size: 1.4rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.resource-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 160px;
+}
+
+.resource-title {
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.resource-sub {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+}
+
+.btn-subjective { background: var(--gold); color: var(--ink); }
+.btn-subjective:hover { background: var(--red); color: var(--paper); }
+
 /* ===== Embedded PDF viewer ===== */
 .pdf-toolbar {
     display: flex;

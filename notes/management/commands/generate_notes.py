@@ -113,7 +113,7 @@ class Command(BaseCommand):
                 try:
                     pdf_file = build_notes_pdf(subject_name, chapter_title, CLASS_LEVEL, sections)
                     with transaction.atomic():
-                        note = Note(chapter=chapter, title=note_title)
+                        note = Note(chapter=chapter, title=note_title, resource_type='notes')
                         note.pdf_file.save(pdf_file.name, pdf_file, save=True)
                     self.stdout.write(self.style.SUCCESS(f"    done - {len(sections)} sections saved as PDF."))
                     done += 1

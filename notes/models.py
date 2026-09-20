@@ -45,8 +45,14 @@ class Chapter(models.Model):
 
 
 class Note(models.Model):
+    RESOURCE_TYPE_CHOICES = (
+        ('notes', 'Chapter Notes'),
+        ('subjective', 'Subjective Questions'),
+    )
+
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='notes')
     title = models.CharField(max_length=200)
+    resource_type = models.CharField(max_length=20, choices=RESOURCE_TYPE_CHOICES, default='notes')
     pdf_file = models.FileField(upload_to='notes_pdfs/', storage=PDF_STORAGE, max_length=255)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 

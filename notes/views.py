@@ -49,10 +49,12 @@ def subject_chapters_view(request, subject_id):
 
 def chapter_notes_view(request, chapter_id):
     chapter = get_object_or_404(Chapter, id=chapter_id)
-    notes = chapter.notes.all()
+    notes = chapter.notes.filter(resource_type='notes')
+    subjective_sets = chapter.notes.filter(resource_type='subjective')
     return render(request, 'notes/notes_list.html', {
         'chapter': chapter,
         'notes': notes,
+        'subjective_sets': subjective_sets,
     })
 
 
