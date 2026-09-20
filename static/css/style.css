@@ -41,8 +41,8 @@ a { color: inherit; }
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
+    flex-wrap: nowrap;
+    gap: 14px;
 }
 
 .brand {
@@ -51,6 +51,7 @@ a { color: inherit; }
     gap: 12px;
     text-decoration: none;
     color: var(--paper);
+    flex-shrink: 0;
 }
 
 .brand-logo {
@@ -83,52 +84,19 @@ a { color: inherit; }
     display: flex;
     align-items: center;
     gap: 20px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
 }
-
-.nav-toggle {
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    gap: 5px;
-    background: transparent;
-    border: none;
-    padding: 6px;
-    cursor: pointer;
-    margin-left: auto;
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a, .nav-links .push-bell {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
-.nav-toggle span {
-    display: block;
-    width: 24px;
-    height: 2px;
-    background: var(--paper);
-    border-radius: 2px;
-    transition: transform 0.2s ease, opacity 0.2s ease;
-}
-.nav-toggle.is-open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-.nav-toggle.is-open span:nth-child(2) { opacity: 0; }
-.nav-toggle.is-open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-
-@media (max-width: 720px) {
-    .nav-toggle { display: flex; }
-    .nav-links {
-        display: none;
-        flex-basis: 100%;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 2px;
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid rgba(255,255,255,0.15);
-    }
-    .nav-links.is-open { display: flex; }
-    .nav-links a, .nav-links .push-bell {
-        padding: 10px 4px;
-        width: 100%;
-    }
-    .nav-links .nav-id { width: auto; align-self: flex-start; }
-    .nav-links .nav-cta { text-align: center; }
-}
+.nav-links .nav-id { flex-shrink: 0; }
 
 .nav-links a {
     text-decoration: none;
