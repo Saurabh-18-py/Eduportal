@@ -9,8 +9,10 @@ UPLOADER_GROUP_NAME = 'Uploaders'
 
 @admin.register(StudentProfile)
 class StudentProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'class_level', 'avatar', 'created_at')
+    list_display = ('user', 'class_level', 'doubt_limit_per_day', 'avatar', 'created_at')
     list_filter = ('class_level',)
+    list_editable = ('doubt_limit_per_day',)
+    search_fields = ('user__username', 'user__first_name', 'user__last_name')
 
 
 @admin.register(Avatar)
