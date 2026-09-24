@@ -52,15 +52,9 @@ def dashboard(request):
         count = all_visits.filter(timestamp__gte=day_start, timestamp__lt=day_end).count()
         daily_counts.append({'label': day_start.strftime('%d %b'), 'count': count})
 
-    # map pins - one per distinct (lat, lon) with a visit count, most recent 30 days only
-    pin_rows = (
-        all_visits.filter(timestamp__gte=month_start)
-        .exclude(latitude__isnull=True)
-        .values('latitude', 'longitude', 'city', 'country')
-        .annotate(views=Count('id'))
-        .order_by('-views')
+    recent_visits = (
+        all_visits.select_related('user')[:30]
     )
-    map_pins = list(pin_rows)
 
     context = {
         'total_visits': total_visits,
@@ -72,6 +66,6 @@ def dashboard(request):
         'top_cities': top_cities,
         'daily_labels': [d['label'] for d in daily_counts],
         'daily_values': [d['count'] for d in daily_counts],
-        'map_pins': map_pins,
+        'recent_visits': recent_visits,
     }
     return render(request, 'analytics/dashboard.html', context)

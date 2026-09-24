@@ -26,15 +26,7 @@
 
 <div class="resource-card" style="margin-bottom: 24px;">
     <h2 style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 12px;">Visits - Last 14 Days</h2>
-    <canvas id="trendChart" height="80"></canvas>
-</div>
-
-<div class="resource-card" style="margin-bottom: 24px;">
-    <h2 style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 12px;">Visitor Map</h2>
-    <div id="visitorMap" style="height: 420px; width: 100%; border-radius: 8px; border: 1px solid var(--rule);"></div>
-    <p style="color: var(--ink-soft); font-size: 0.8rem; margin-top: 8px;">
-        Locations are approximate (IP-based, city-level) - not exact addresses. Last 30 days only.
-    </p>
+    <canvas id="trendChart" height="80" style="width: 100%;"></canvas>
 </div>
 
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
@@ -81,18 +73,39 @@
     </table>
 </div>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<div class="resource-card" style="margin-bottom: 24px;">
+    <h2 style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 12px;">Recent Visits</h2>
+    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+        <tr style="border-bottom: 2px solid var(--rule); text-align: left;">
+            <th style="padding: 6px 4px;">User</th>
+            <th style="padding: 6px 4px;">Page</th>
+            <th style="padding: 6px 4px;">Location</th>
+            <th style="padding: 6px 4px;">Time</th>
+        </tr>
+        {% for visit in recent_visits %}
+        <tr style="border-bottom: 1px solid var(--rule);">
+            <td style="padding: 6px 4px; font-weight: 600;">
+                {% if visit.user %}{{ visit.user.username }}{% else %}<span style="color: var(--ink-soft); font-weight: 400;">Guest</span>{% endif %}
+            </td>
+            <td style="padding: 6px 4px; font-family: var(--font-mono); font-size: 0.75rem;">{{ visit.path }}</td>
+            <td style="padding: 6px 4px;">
+                {% if visit.city %}{{ visit.city }}, {{ visit.country }}{% else %}<span style="color: var(--ink-soft);">Unknown</span>{% endif %}
+            </td>
+            <td style="padding: 6px 4px; color: var(--ink-soft); white-space: nowrap;">{{ visit.timestamp|date:"d M, H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="padding: 6px 4px; color: var(--ink-soft);">No visits recorded yet.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 {{ daily_labels|json_script:"daily-labels-data" }}
 {{ daily_values|json_script:"daily-values-data" }}
-{{ map_pins|json_script:"map-pins-data" }}
 <script>
     const dailyLabels = JSON.parse(document.getElementById('daily-labels-data').textContent);
     const dailyValues = JSON.parse(document.getElementById('daily-values-data').textContent);
-    const pins = JSON.parse(document.getElementById('map-pins-data').textContent);
 
-    // ---- Trend chart ----
     const trendCtx = document.getElementById('trendChart').getContext('2d');
     new Chart(trendCtx, {
         type: 'line',
@@ -113,29 +126,5 @@
             scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
         }
     });
-
-    // ---- Visitor map ----
-    const map = L.map('visitorMap').setView([22.9734, 78.6569], 4); // centered on India
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 18,
-    }).addTo(map);
-
-    const markers = [];
-    pins.forEach(function (pin) {
-        const marker = L.circleMarker([pin.latitude, pin.longitude], {
-            radius: Math.min(6 + pin.views, 20),
-            color: '#C1443C',
-            fillColor: '#C99A2E',
-            fillOpacity: 0.7,
-            weight: 2,
-        }).addTo(map);
-        marker.bindPopup(`<strong>${pin.city || 'Unknown city'}, ${pin.country || ''}</strong><br>${pin.views} visit(s) in last 30 days`);
-        markers.push(marker);
-    });
-    if (markers.length > 0) {
-        const group = new L.featureGroup(markers);
-        map.fitBounds(group.getBounds().pad(0.3));
-    }
 </script>
 {% endblock %}
