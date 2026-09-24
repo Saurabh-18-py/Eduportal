@@ -48,6 +48,7 @@
                     <a href="{% url 'mocktest:my_attempts' %}">My Results</a>
                     {% if user.is_superuser %}
                         <a href="{% url 'accounts:inbox' %}">Inbox{% if unread_message_count %} <span class="badge-dot">{{ unread_message_count }}</span>{% endif %}</a>
+                        <a href="{% url 'analytics:dashboard' %}">Analytics</a>
                     {% else %}
                         <a href="{% url 'accounts:send_message' %}">Message{% if unread_message_count %} <span class="badge-dot">{{ unread_message_count }}</span>{% endif %}</a>
                     {% endif %}

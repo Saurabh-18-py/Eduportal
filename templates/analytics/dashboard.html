@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Analytics Dashboard - EduPortal{% endblock %}
+
+{% block content %}
+<h1 style="font-family: var(--font-display); margin-bottom: 4px;">📊 Visitor Analytics</h1>
+<p style="color: var(--ink-soft); margin-bottom: 20px;">Owner-only dashboard - not visible to students.</p>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-num">{{ total_visits }}</div>
+        <div class="stat-label">Total Visits</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-num">{{ unique_visitors }}</div>
+        <div class="stat-label">Unique Visitors</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-num">{{ visits_today }}</div>
+        <div class="stat-label">Today</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-num">{{ visits_week }}</div>
+        <div class="stat-label">Last 7 Days</div>
+    </div>
+</div>
+
+<div class="resource-card" style="margin-bottom: 24px;">
+    <h2 style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 12px;">Visits - Last 14 Days</h2>
+    <canvas id="trendChart" height="80"></canvas>
+</div>
+
+<div class="resource-card" style="margin-bottom: 24px;">
+    <h2 style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 12px;">Visitor Map</h2>
+    <div id="visitorMap" style="height: 420px; width: 100%; border-radius: 8px; border: 1px solid var(--rule);"></div>
+    <p style="color: var(--ink-soft); font-size: 0.8rem; margin-top: 8px;">
+        Locations are approximate (IP-based, city-level) - not exact addresses. Last 30 days only.
+    </p>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+    <div class="resource-card">
+        <h2 style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 12px;">Top Pages</h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            {% for row in top_pages %}
+            <tr style="border-bottom: 1px solid var(--rule);">
+                <td style="padding: 6px 4px; font-family: var(--font-mono); font-size: 0.8rem;">{{ row.path }}</td>
+                <td style="padding: 6px 4px; text-align: right; font-weight: 600;">{{ row.views }}</td>
+            </tr>
+            {% empty %}
+            <tr><td style="padding: 6px 4px; color: var(--ink-soft);">No visits recorded yet.</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="resource-card">
+        <h2 style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 12px;">Top Countries</h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            {% for row in top_countries %}
+            <tr style="border-bottom: 1px solid var(--rule);">
+                <td style="padding: 6px 4px;">{{ row.country }}</td>
+                <td style="padding: 6px 4px; text-align: right; font-weight: 600;">{{ row.views }}</td>
+            </tr>
+            {% empty %}
+            <tr><td style="padding: 6px 4px; color: var(--ink-soft);">No location data yet.</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+<div class="resource-card" style="margin-bottom: 24px;">
+    <h2 style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 12px;">Top Cities</h2>
+    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+        {% for row in top_cities %}
+        <tr style="border-bottom: 1px solid var(--rule);">
+            <td style="padding: 6px 4px;">{{ row.city }}, {{ row.country }}</td>
+            <td style="padding: 6px 4px; text-align: right; font-weight: 600;">{{ row.views }}</td>
+        </tr>
+        {% empty %}
+        <tr><td style="padding: 6px 4px; color: var(--ink-soft);">No location data yet.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+{{ daily_labels|json_script:"daily-labels-data" }}
+{{ daily_values|json_script:"daily-values-data" }}
+{{ map_pins|json_script:"map-pins-data" }}
+<script>
+    const dailyLabels = JSON.parse(document.getElementById('daily-labels-data').textContent);
+    const dailyValues = JSON.parse(document.getElementById('daily-values-data').textContent);
+    const pins = JSON.parse(document.getElementById('map-pins-data').textContent);
+
+    // ---- Trend chart ----
+    const trendCtx = document.getElementById('trendChart').getContext('2d');
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: dailyLabels,
+            datasets: [{
+                label: 'Visits',
+                data: dailyValues,
+                borderColor: '#C1443C',
+                backgroundColor: 'rgba(193, 68, 60, 0.12)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 3,
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+    });
+
+    // ---- Visitor map ----
+    const map = L.map('visitorMap').setView([22.9734, 78.6569], 4); // centered on India
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 18,
+    }).addTo(map);
+
+    const markers = [];
+    pins.forEach(function (pin) {
+        const marker = L.circleMarker([pin.latitude, pin.longitude], {
+            radius: Math.min(6 + pin.views, 20),
+            color: '#C1443C',
+            fillColor: '#C99A2E',
+            fillOpacity: 0.7,
+            weight: 2,
+        }).addTo(map);
+        marker.bindPopup(`<strong>${pin.city || 'Unknown city'}, ${pin.country || ''}</strong><br>${pin.views} visit(s) in last 30 days`);
+        markers.push(marker);
+    });
+    if (markers.length > 0) {
+        const group = new L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.3));
+    }
+</script>
+{% endblock %}

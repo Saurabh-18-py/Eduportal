@@ -11,14 +11,15 @@ from notes.pdf_builder import build_notes_pdf
 from mocktest.ai_helpers import load_api_keys, MCQGenerationError, RateLimitError
 from mocktest.management.commands.generate_all_mcqs import SYLLABUS
 
-CLASS_LEVEL = 11  # this command is Class 11 only, on purpose
+DEFAULT_CLASS_LEVEL = 11  # kept as the default for backward compatibility
 
 
 class Command(BaseCommand):
-    help = "Bulk-generate detailed AI notes (with examples), as PDFs, for Class 11 chapters."
+    help = "Bulk-generate detailed AI notes (with examples), as PDFs, for a class's chapters."
 
     def add_arguments(self, parser):
-        parser.add_argument('--subject', default=None, help='Limit to one subject, e.g. "History" (default: all Class 11 subjects)')
+        parser.add_argument('--class', dest='class_level', type=int, default=DEFAULT_CLASS_LEVEL, help='Class level: 9, 10, 11 or 12 (default: 11)')
+        parser.add_argument('--subject', default=None, help='Limit to one subject, e.g. "History" (default: all subjects for the class)')
         parser.add_argument('--delay', type=int, default=20, help='Seconds to wait between chapters, to stay within free-tier rate limits (default 20)')
 
     def handle(self, *args, **options):
@@ -32,17 +33,21 @@ class Command(BaseCommand):
             )
         key_index = [0]
 
+        class_level = options['class_level']
         subject_filter = options['subject']
         delay = options['delay']
 
-        subjects_map = SYLLABUS[CLASS_LEVEL]
+        if class_level not in SYLLABUS:
+            raise CommandError(f"No syllabus data for Class {class_level} yet. Available: {list(SYLLABUS.keys())}")
+
+        subjects_map = SYLLABUS[class_level]
         if subject_filter:
             if subject_filter not in subjects_map:
-                raise CommandError(f"Subject '{subject_filter}' not found for Class 11. Available: {list(subjects_map.keys())}")
+                raise CommandError(f"Subject '{subject_filter}' not found for Class {class_level}. Available: {list(subjects_map.keys())}")
             subjects_map = {subject_filter: subjects_map[subject_filter]}
 
         total_chapters = sum(len(chapters) for chapters in subjects_map.values())
-        self.stdout.write(f"Starting bulk notes generation: {total_chapters} chapters across {len(subjects_map)} subject(s) for Class 11.\n")
+        self.stdout.write(f"Starting bulk notes generation: {total_chapters} chapters across {len(subjects_map)} subject(s) for Class {class_level}.\n")
 
         done = 0
         failed = []
@@ -55,7 +60,7 @@ class Command(BaseCommand):
         for subject_name, chapters in subjects_map.items():
             subject, created = Subject.objects.get_or_create(
                 name=subject_name,
-                class_level=CLASS_LEVEL,
+                class_level=class_level,
                 board='CBSE',
             )
             if created:
@@ -84,7 +89,7 @@ class Command(BaseCommand):
                 for attempt in range(1, max_retries + 1):
                     try:
                         sections, _meta = generate_notes_batch_with_rotation(
-                            api_keys, key_index, subject_name, chapter_title, CLASS_LEVEL, on_rotate=on_rotate
+                            api_keys, key_index, subject_name, chapter_title, class_level, on_rotate=on_rotate
                         )
                         break
                     except RateLimitError as e:
@@ -111,7 +116,7 @@ class Command(BaseCommand):
                     continue
 
                 try:
-                    pdf_file = build_notes_pdf(subject_name, chapter_title, CLASS_LEVEL, sections)
+                    pdf_file = build_notes_pdf(subject_name, chapter_title, class_level, sections)
                     with transaction.atomic():
                         note = Note(chapter=chapter, title=note_title, resource_type='notes')
                         note.pdf_file.save(pdf_file.name, pdf_file, save=True)

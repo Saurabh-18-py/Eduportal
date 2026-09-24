@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'mocktest',
     'notifications',
     'doubtsolver',
+    'analytics',
 ]
 
 MIDDLEWARE = [
@@ -43,6 +44,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'analytics.middleware.TrackVisitsMiddleware',
 ]
 
 ROOT_URLCONF = 'eduportal.urls'
