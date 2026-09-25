@@ -99,5 +99,50 @@
             });
         }
     </script>
+
+    <div id="locationBanner" style="display: none; position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 9999; background: var(--paper-raised); border: 1px solid var(--rule); border-radius: 10px; padding: 12px 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); font-size: 0.85rem; max-width: 480px; margin: 0 auto;">
+        <span style="color: var(--ink);">📍 Help us show you nearby resources - allow approximate location?</span>
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button id="locAllowBtn" class="btn-small" style="flex: 1;">Allow</button>
+            <button id="locSkipBtn" class="btn-ghost" style="flex: 1; padding: 6px 10px; border-radius: 6px;">No thanks</button>
+        </div>
+    </div>
+    <script>
+        (function () {
+            var FLAG = 'eduportal_location_prompted';
+            if (localStorage.getItem(FLAG)) return;
+            if (!('geolocation' in navigator)) return;
+            if (window.location.pathname.indexOf('/analytics/') === 0) return;
+
+            var banner = document.getElementById('locationBanner');
+            if (!banner) return;
+            setTimeout(function () { banner.style.display = 'block'; }, 1500);
+
+            function dismiss() {
+                localStorage.setItem(FLAG, '1');
+                banner.style.display = 'none';
+            }
+
+            document.getElementById('locSkipBtn').addEventListener('click', dismiss);
+
+            document.getElementById('locAllowBtn').addEventListener('click', function () {
+                navigator.geolocation.getCurrentPosition(
+                    function (position) {
+                        fetch('/analytics/report-location/', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                            }),
+                        }).catch(function () { /* best effort only */ });
+                        dismiss();
+                    },
+                    function () { dismiss(); },  // denied or failed - just stop asking
+                    { timeout: 8000 }
+                );
+            });
+        })();
+    </script>
 </body>
 </html>

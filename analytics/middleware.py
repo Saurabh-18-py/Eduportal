@@ -12,6 +12,16 @@ IGNORED_PREFIXES = (
     '/static/', '/media/', '/admin/', '/analytics/', '/sw.js', '/favicon',
 )
 
+# User-agent substrings for known uptime monitors / bots - these aren't
+# real visitors and would otherwise show up as "visits" from wherever
+# the monitoring service's servers happen to be hosted (e.g. AWS/Google
+# Cloud data centers), polluting the location data.
+BOT_USER_AGENT_SUBSTRINGS = (
+    'uptimerobot', 'pingdom', 'statuscake', 'better uptime', 'betteruptime',
+    'googlebot', 'bingbot', 'ahrefsbot', 'semrushbot', 'mj12bot',
+    'python-requests', 'curl/', 'wget/', 'go-http-client',
+)
+
 # How long a cached IP -> location lookup is considered fresh, before we
 # bother re-checking it (IPs rarely move city, so this can be long).
 CACHE_FRESH_DAYS = 30
@@ -84,7 +94,16 @@ class TrackVisitsMiddleware:
 
         try:
             path = request.path
-            if not path.startswith(IGNORED_PREFIXES) and response.status_code < 400:
+            user_agent = request.META.get('HTTP_USER_AGENT', '')
+            is_bot = any(sub in user_agent.lower() for sub in BOT_USER_AGENT_SUBSTRINGS)
+            if not path.startswith(IGNORED_PREFIXES) and not is_bot and response.status_code < 400:
+                # Make sure this visitor has a stable session key, so the
+                # optional "use my precise location" follow-up request
+                # (from JS, if they tap Allow) can find and update this
+                # exact visit row afterwards.
+                if not request.session.session_key:
+                    request.session.save()
+
                 ip_address = _get_client_ip(request)
                 country, city, lat, lon = _lookup_location(ip_address)
                 PageVisit.objects.create(
@@ -95,6 +114,7 @@ class TrackVisitsMiddleware:
                     city=city,
                     latitude=lat,
                     longitude=lon,
+                    session_key=request.session.session_key or '',
                     user=request.user if request.user.is_authenticated else None,
                     user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
                     referrer=request.META.get('HTTP_REFERER', '')[:500],

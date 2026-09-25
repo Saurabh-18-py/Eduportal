@@ -22,6 +22,10 @@
         <div class="stat-num">{{ visits_week }}</div>
         <div class="stat-label">Last 7 Days</div>
     </div>
+    <div class="stat-card">
+        <div class="stat-num">{{ verified_count }}</div>
+        <div class="stat-label">GPS-Verified 📍</div>
+    </div>
 </div>
 
 <div class="resource-card" style="margin-bottom: 24px;">
@@ -89,7 +93,7 @@
             </td>
             <td style="padding: 6px 4px; font-family: var(--font-mono); font-size: 0.75rem;">{{ visit.path }}</td>
             <td style="padding: 6px 4px;">
-                {% if visit.city %}{{ visit.city }}, {{ visit.country }}{% else %}<span style="color: var(--ink-soft);">Unknown</span>{% endif %}
+                {% if visit.city %}{{ visit.city }}, {{ visit.country }}{% if visit.location_verified %} <span title="GPS-verified" style="color: var(--teal);">✓</span>{% endif %}{% else %}<span style="color: var(--ink-soft);">Unknown</span>{% endif %}
             </td>
             <td style="padding: 6px 4px; color: var(--ink-soft); white-space: nowrap;">{{ visit.timestamp|date:"d M, H:i" }}</td>
         </tr>

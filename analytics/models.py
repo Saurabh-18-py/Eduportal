@@ -27,6 +27,12 @@ class PageVisit(models.Model):
     city = models.CharField(max_length=100, blank=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
+    location_verified = models.BooleanField(
+        default=False,
+        help_text="True if this location came from the visitor's own device GPS "
+                   "(they tapped 'Allow'), not just guessed from their IP address.",
+    )
+    session_key = models.CharField(max_length=40, blank=True, db_index=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     user_agent = models.CharField(max_length=500, blank=True)
     referrer = models.CharField(max_length=500, blank=True)
@@ -38,6 +44,7 @@ class PageVisit(models.Model):
             models.Index(fields=['timestamp']),
             models.Index(fields=['country']),
             models.Index(fields=['path']),
+            models.Index(fields=['session_key']),
         ]
 
     def __str__(self):
