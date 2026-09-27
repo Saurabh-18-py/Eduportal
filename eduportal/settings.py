@@ -33,7 +33,26 @@ INSTALLED_APPS = [
     'notifications',
     'doubtsolver',
     'analytics',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'api',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=90),
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

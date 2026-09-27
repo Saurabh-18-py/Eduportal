@@ -63,23 +63,35 @@ def _parse_retry_after(error_text):
 
 def _try_salvage_json_array(text):
     """
-    If the response got cut off mid-array (hit max_tokens), try to recover
-    the questions that DID finish generating instead of throwing them all
-    away: trim back to the last fully-closed '}' and re-close the array.
+    If the response got cut off mid-array (hit max_tokens), recover as many
+    COMPLETE objects as parsed successfully before the cut-off, instead of
+    throwing everything away. Uses Python's real JSON decoder incrementally
+    (via raw_decode) so it's robust to stray quote characters, escaped
+    quotes, nested braces, etc. inside the text (e.g. Hindi content that
+    quotes example sentences) - far more reliable than guessing where to
+    truncate by scanning for the last '}'.
     """
-    last_brace = text.rfind('}')
-    if last_brace == -1:
+    text = text.strip()
+    if not text.startswith('['):
         return None
-    candidate = text[:last_brace + 1].rstrip()
-    if candidate.endswith(','):
-        candidate = candidate[:-1]
-    if not candidate.startswith('['):
-        return None
-    candidate += ']'
-    try:
-        return json.loads(candidate)
-    except json.JSONDecodeError:
-        return None
+
+    decoder = json.JSONDecoder()
+    idx = 1  # skip the opening '['
+    n = len(text)
+    results = []
+    while idx < n:
+        while idx < n and text[idx] in ' \t\n\r,':
+            idx += 1
+        if idx >= n or text[idx] == ']':
+            break
+        try:
+            obj, end_idx = decoder.raw_decode(text, idx)
+        except json.JSONDecodeError:
+            break  # this is where the truncation happened - stop here
+        results.append(obj)
+        idx = end_idx
+
+    return results if results else None
 
 
 def _request_mcqs_from_groq(api_key, subject_name, chapter, class_level, num_questions, difficulty):
@@ -111,6 +123,17 @@ Respond with ONLY a JSON array, no other text, no markdown code fences. Format:
   }}
 ]"""
 
+    # Scale the completion-token budget to how many questions were actually
+    # asked for, instead of always reserving a flat 8000 - Groq's free tier
+    # caps total tokens/minute at 8000, so a fixed 8000 request would eat the
+    # ENTIRE per-minute budget on every single call (even a 10-question
+    # batch), causing intermittent "request too large" failures whenever two
+    # calls landed close together. ~400 tokens/question is a generous safe
+    # estimate (question + 4 options + explanation, as JSON) - Devanagari/
+    # Hindi content in particular tokenizes far less efficiently than
+    # English, so this errs on the generous side to avoid mid-response cuts.
+    max_tokens = min(8000, max(1500, 300 + num_questions * 400))
+
     response = requests.post(
         GROQ_API_URL,
         headers={
@@ -121,7 +144,7 @@ Respond with ONLY a JSON array, no other text, no markdown code fences. Format:
             "model": GROQ_MODEL,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.7,
-            "max_tokens": 8000,
+            "max_tokens": max_tokens,
             # GPT-OSS models default to "medium" reasoning effort, which can
             # burn most of max_tokens on hidden reasoning before ever writing
             # the JSON answer, causing truncated/empty responses. "low" keeps
@@ -137,6 +160,13 @@ Respond with ONLY a JSON array, no other text, no markdown code fences. Format:
 
     if response.status_code == 401:
         raise InvalidAPIKeyError(f"Invalid/revoked API key: {response.text}")
+
+    if response.status_code == 413 or (response.status_code != 200 and 'rate_limit_exceeded' in response.text):
+        # "Request too large for ... tokens per minute" - treat exactly like
+        # a rate limit: wait/rotate keys and retry, instead of giving up on
+        # this chapter entirely.
+        retry_after = _parse_retry_after(response.text)
+        raise RateLimitError(f"Token budget exceeded: {response.text}", retry_after)
 
     if response.status_code != 200:
         raise MCQGenerationError(f"Groq API error ({response.status_code}): {response.text}")

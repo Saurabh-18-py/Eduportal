@@ -10,3 +10,5 @@ psycopg2-binary>=2.9
 django-cloudinary-storage>=0.3
 cloudinary>=1.36
 pywebpush>=2.0
+djangorestframework>=3.15
+djangorestframework-simplejwt>=5.3

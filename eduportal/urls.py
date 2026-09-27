@@ -14,6 +14,7 @@ urlpatterns = [
     path('notifications/', include('notifications.urls')),
     path('doubt/', include('doubtsolver.urls')),
     path('analytics/', include('analytics.urls')),
+    path('api/', include('api.urls')),
     path('sw.js', service_worker, name='service_worker'),
     path('offline/', offline_view, name='offline'),
 ]
