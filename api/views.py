@@ -1,17 +1,28 @@
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.hashers import check_password
+from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.models import StudentProfile
+from accounts.models import StudentProfile, Avatar, Message
 from notes.models import Subject, Chapter, Note, PYQPaper
 from mocktest.models import Test, Question, Choice, TestAttempt, StudentAnswer
+from doubtsolver.models import DoubtMessage
+from doubtsolver.doubt_ai import get_tutor_reply_with_rotation
+from mocktest.ai_helpers import load_doubtsolver_api_keys, MCQGenerationError
 
 from .serializers import (
-    RegisterSerializer, StudentProfileSerializer,
+    RegisterSerializer, StudentProfileSerializer, AvatarSerializer,
     SubjectSerializer, ChapterSerializer, NoteSerializer, PYQPaperSerializer,
-    TestListSerializer, QuestionSerializer, SubmitAnswerSerializer,
+    TestListSerializer, QuestionSerializer, SubmitAnswerSerializer, TestAttemptSerializer,
+    DoubtMessageSerializer, AskDoubtSerializer,
+    MessageSerializer, SendMessageSerializer,
+    UpdateProfileSerializer, ChangePasswordSerializer,
 )
+
+DEFAULT_DOUBT_DAILY_LIMIT = 10
+_doubt_key_index = [0]
 
 
 # ---------------------------------------------------------------- accounts
@@ -174,3 +185,144 @@ class TestSliceSubmitView(APIView):
             'total': len(questions),
             'results': results,
         })
+
+
+# ------------------------------------------------------------- my results
+
+class MyAttemptsView(generics.ListAPIView):
+    """GET /api/attempts/ - the logged-in student's own test attempt history, newest first."""
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = TestAttemptSerializer
+
+    def get_queryset(self):
+        return TestAttempt.objects.filter(student=self.request.user).select_related('test', 'test__subject').order_by('-started_at')
+
+
+# ------------------------------------------------------------ doubt solver
+
+class DoubtHistoryView(APIView):
+    """GET /api/doubts/ - chat history + how many doubts are left today."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        history = DoubtMessage.objects.filter(student=request.user).order_by('created_at')
+        profile = StudentProfile.objects.filter(user=request.user).first()
+        limit = profile.doubt_limit_per_day if profile else DEFAULT_DOUBT_DAILY_LIMIT
+        asked_today = DoubtMessage.objects.filter(
+            student=request.user, role='user', created_at__date=timezone.localdate()
+        ).count()
+        return Response({
+            'history': DoubtMessageSerializer(history, many=True).data,
+            'doubts_left': max(limit - asked_today, 0),
+            'doubt_limit': limit,
+        })
+
+
+class AskDoubtView(APIView):
+    """POST /api/doubts/ask/ {"message": "..."} - ask the AI tutor a new doubt."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = AskDoubtSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        question = serializer.validated_data['message'].strip()
+        if not question:
+            return Response({'error': 'Type a doubt first.'}, status=400)
+
+        profile = StudentProfile.objects.filter(user=request.user).first()
+        limit = profile.doubt_limit_per_day if profile else DEFAULT_DOUBT_DAILY_LIMIT
+        asked_today = DoubtMessage.objects.filter(
+            student=request.user, role='user', created_at__date=timezone.localdate()
+        ).count()
+        if asked_today >= limit:
+            return Response({
+                'error': f"You've used all {limit} doubts for today. It resets at midnight.",
+                'limit_reached': True,
+            }, status=429)
+
+        DoubtMessage.objects.create(student=request.user, role='user', content=question)
+
+        recent = DoubtMessage.objects.filter(student=request.user).order_by('-created_at')[:12]
+        history = [{'role': m.role, 'content': m.content} for m in reversed(recent)]
+
+        api_keys = load_doubtsolver_api_keys()
+        class_level = profile.class_level if profile else None
+        try:
+            reply = get_tutor_reply_with_rotation(api_keys, _doubt_key_index, class_level, history)
+        except MCQGenerationError:
+            reply = "Sorry, I couldn't reach the AI tutor just now. Please try again in a moment."
+
+        DoubtMessage.objects.create(student=request.user, role='assistant', content=reply)
+        return Response({'reply': reply})
+
+
+# ---------------------------------------------------------------- messages
+
+def _get_owner():
+    from django.contrib.auth.models import User
+    return User.objects.filter(is_superuser=True).order_by('id').first()
+
+
+class InboxView(APIView):
+    """GET /api/messages/ - the student's conversation thread with the site owner."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        owner = _get_owner()
+        if not owner:
+            return Response({'messages': []})
+        thread = Message.objects.filter(
+            sender__in=[request.user, owner], recipient__in=[request.user, owner]
+        ).order_by('created_at')
+        thread.filter(recipient=request.user, is_read=False).update(is_read=True)
+        return Response({'messages': MessageSerializer(thread, many=True, context={'request': request}).data})
+
+
+class SendMessageView(APIView):
+    """POST /api/messages/send/ {"text": "..."} - message the site owner."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        owner = _get_owner()
+        if not owner:
+            return Response({'error': 'Messaging is not available right now.'}, status=503)
+        serializer = SendMessageSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        msg = Message.objects.create(sender=request.user, recipient=owner, text=serializer.validated_data['text'])
+        return Response(MessageSerializer(msg, context={'request': request}).data, status=status.HTTP_201_CREATED)
+
+
+# ---------------------------------------------------------------- profile
+
+class AvatarListView(generics.ListAPIView):
+    """GET /api/avatars/ - the preset avatars a student can pick from."""
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AvatarSerializer
+    queryset = Avatar.objects.filter(is_active=True).order_by('order', 'id')
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+
+class UpdateProfileView(generics.UpdateAPIView):
+    """PATCH /api/auth/me/update/ {"phone": "...", "avatar_id": 3} - update phone/avatar."""
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UpdateProfileSerializer
+
+    def get_object(self):
+        return get_object_or_404(StudentProfile, user=self.request.user)
+
+
+class ChangePasswordView(APIView):
+    """POST /api/auth/change-password/ {"old_password": "...", "new_password": "..."}"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = ChangePasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = request.user
+        if not check_password(serializer.validated_data['old_password'], user.password):
+            return Response({'error': 'Current password is incorrect.'}, status=400)
+        user.set_password(serializer.validated_data['new_password'])
+        user.save(update_fields=['password'])
+        return Response({'ok': True})

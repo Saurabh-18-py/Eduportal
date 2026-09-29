@@ -2,9 +2,10 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from accounts.models import StudentProfile, Avatar
+from accounts.models import StudentProfile, Avatar, Message
 from notes.models import Subject, Chapter, Note, PYQPaper
-from mocktest.models import Test, Question, Choice
+from mocktest.models import Test, Question, Choice, TestAttempt
+from doubtsolver.models import DoubtMessage
 
 
 # ---------------------------------------------------------------- accounts
@@ -126,3 +127,72 @@ class QuestionSerializer(serializers.ModelSerializer):
 class SubmitAnswerSerializer(serializers.Serializer):
     question_id = serializers.IntegerField()
     choice_id = serializers.IntegerField(allow_null=True)
+
+
+class TestAttemptSerializer(serializers.ModelSerializer):
+    test_title = serializers.SerializerMethodField()
+    subject_name = serializers.CharField(source='test.subject.name', read_only=True)
+
+    class Meta:
+        model = TestAttempt
+        fields = ['id', 'test_title', 'subject_name', 'score', 'total', 'started_at', 'submitted_at']
+
+    def get_test_title(self, obj):
+        return obj.test.title.replace(' - Practice Test', '')
+
+
+# ------------------------------------------------------------ doubt solver
+
+class DoubtMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DoubtMessage
+        fields = ['id', 'role', 'content', 'created_at']
+
+
+class AskDoubtSerializer(serializers.Serializer):
+    message = serializers.CharField(max_length=2000)
+
+
+# ---------------------------------------------------------------- messages
+
+class MessageSerializer(serializers.ModelSerializer):
+    is_mine = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Message
+        fields = ['id', 'text', 'created_at', 'is_read', 'is_mine']
+
+    def get_is_mine(self, obj):
+        request = self.context.get('request')
+        return bool(request and obj.sender_id == request.user.id)
+
+
+class SendMessageSerializer(serializers.Serializer):
+    text = serializers.CharField(max_length=4000)
+
+
+# ---------------------------------------------------------------- profile
+
+class UpdateProfileSerializer(serializers.ModelSerializer):
+    avatar_id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = StudentProfile
+        fields = ['phone', 'avatar_id']
+
+    def update(self, instance, validated_data):
+        avatar_id = validated_data.pop('avatar_id', 'unset')
+        if avatar_id != 'unset':
+            if avatar_id is None:
+                instance.avatar = None
+            else:
+                instance.avatar = Avatar.objects.filter(id=avatar_id, is_active=True).first()
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField()
+    new_password = serializers.CharField(validators=[validate_password])
