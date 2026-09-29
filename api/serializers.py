@@ -48,6 +48,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
+        from django.contrib.auth.models import User as UserModel
+        from accounts.models import Message
+
         class_level = validated_data.pop('class_level')
         user = User.objects.create_user(
             username=validated_data['username'],
@@ -56,6 +59,18 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         default_avatar = Avatar.objects.filter(is_active=True).order_by('order', 'id').first()
         StudentProfile.objects.create(user=user, class_level=class_level, avatar=default_avatar)
+
+        admin_user = UserModel.objects.filter(is_superuser=True).order_by('id').first()
+        if admin_user and admin_user != user:
+            Message.objects.create(
+                sender=admin_user,
+                recipient=user,
+                text=(
+                    f"Welcome, {user.username} 🎉 You're in the right spot — "
+                    f"studying's about to hit different. I'm Saurabh. "
+                    f"Hit me up anytime 💯"
+                ),
+            )
         return user
 
 
