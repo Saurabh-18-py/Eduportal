@@ -211,3 +211,24 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField()
     new_password = serializers.CharField(validators=[validate_password])
+
+
+# MATH_CLEAN_HOOK: LaTeX jaisa math app ke liye saaf karo
+from .mathclean import clean_math as _clean_math
+
+
+def _hook_clean(cls, field_names):
+    orig = cls.to_representation
+
+    def to_representation(self, instance):
+        data = orig(self, instance)
+        for f in field_names:
+            if f in data:
+                data[f] = _clean_math(data[f])
+        return data
+
+    cls.to_representation = to_representation
+
+
+_hook_clean(ChoiceSerializer, ['text'])
+_hook_clean(QuestionSerializer, ['text', 'explanation'])

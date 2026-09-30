@@ -1,3 +1,4 @@
+from .mathclean import clean_math
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.hashers import check_password
 from django.utils import timezone
@@ -171,7 +172,7 @@ class TestSliceSubmitView(APIView):
                 'your_choice_id': selected_choice_id,
                 'correct_choice_id': correct_choice.id if correct_choice else None,
                 'is_correct': is_correct,
-                'explanation': q.explanation,
+                'explanation': clean_math(q.explanation),
             })
 
         from django.utils import timezone
