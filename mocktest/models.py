@@ -74,6 +74,8 @@ class TestAttempt(models.Model):
     submitted_at = models.DateTimeField(null=True, blank=True)
     score = models.PositiveIntegerField(default=0)
     total = models.PositiveIntegerField(default=0)
+    slice_number = models.PositiveIntegerField(default=0)
+    duration_seconds = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f"{self.student.username} - {self.test.title} ({self.score}/{self.total})"
@@ -83,6 +85,7 @@ class StudentAnswer(models.Model):
     attempt = models.ForeignKey(TestAttempt, on_delete=models.CASCADE, related_name='answers')
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     selected_choice = models.ForeignKey(Choice, on_delete=models.SET_NULL, null=True, blank=True)
+    time_taken_seconds = models.PositiveIntegerField(default=0)
 
     @property
     def is_correct(self):

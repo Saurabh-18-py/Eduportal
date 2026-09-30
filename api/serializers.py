@@ -147,6 +147,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 class SubmitAnswerSerializer(serializers.Serializer):
     question_id = serializers.IntegerField()
     choice_id = serializers.IntegerField(allow_null=True)
+    time_taken = serializers.IntegerField(required=False, default=0, min_value=0, max_value=7200)
 
 
 class TestAttemptSerializer(serializers.ModelSerializer):

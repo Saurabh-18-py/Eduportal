@@ -1,3 +1,4 @@
+from .report import build_report
 from .mathclean import clean_math
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.hashers import check_password
@@ -150,8 +151,16 @@ class TestSliceSubmitView(APIView):
         answers_serializer = SubmitAnswerSerializer(data=request.data.get('answers', []), many=True)
         answers_serializer.is_valid(raise_exception=True)
         submitted = {a['question_id']: a['choice_id'] for a in answers_serializer.validated_data}
+        times = {a['question_id']: a.get('time_taken', 0) for a in answers_serializer.validated_data}
+        try:
+            duration_seconds = max(0, min(int(request.data.get('total_seconds') or 0), 7200))
+        except (TypeError, ValueError):
+            duration_seconds = 0
 
-        attempt = TestAttempt.objects.create(student=request.user, test=test, total=len(questions))
+        attempt = TestAttempt.objects.create(
+            student=request.user, test=test, total=len(questions),
+            slice_number=int(slice_number), duration_seconds=duration_seconds,
+        )
         score = 0
         results = []
 
@@ -160,7 +169,10 @@ class TestSliceSubmitView(APIView):
             selected_choice = None
             if selected_choice_id:
                 selected_choice = next((c for c in q.choices.all() if c.id == selected_choice_id), None)
-            StudentAnswer.objects.create(attempt=attempt, question=q, selected_choice=selected_choice)
+            StudentAnswer.objects.create(
+                attempt=attempt, question=q, selected_choice=selected_choice,
+                time_taken_seconds=times.get(q.id, 0),
+            )
 
             correct_choice = next((c for c in q.choices.all() if c.is_correct), None)
             is_correct = bool(selected_choice and selected_choice.is_correct)
@@ -185,6 +197,7 @@ class TestSliceSubmitView(APIView):
             'score': score,
             'total': len(questions),
             'results': results,
+            'report': build_report(attempt),
         })
 
 
