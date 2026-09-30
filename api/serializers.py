@@ -66,9 +66,14 @@ class RegisterSerializer(serializers.ModelSerializer):
                 sender=admin_user,
                 recipient=user,
                 text=(
-                    f"Welcome, {user.username} 🎉 You're in the right spot — "
-                    f"studying's about to hit different. I'm Saurabh. "
-                    f"Hit me up anytime 💯"
+                    f"Welcome to EduPortal, {user.username}! 🎓\n\n"
+                    "Here's what you can do:\n"
+                    "• Read chapter-wise notes and download PDFs\n"
+                    "• Solve previous year papers\n"
+                    "• Take timed mock tests and check your results\n"
+                    "• Ask the Doubt Solver anything, anytime\n\n"
+                    "Stuck or have feedback? Just message me right here. All the best!\n"
+                    "– Saurabh"
                 ),
             )
         return user
@@ -172,14 +177,46 @@ class AskDoubtSerializer(serializers.Serializer):
 
 class MessageSerializer(serializers.ModelSerializer):
     is_mine = serializers.SerializerMethodField()
+    is_admin = serializers.SerializerMethodField()
+    sender_name = serializers.SerializerMethodField()
+    sender_avatar_url = serializers.SerializerMethodField()
+    sender_emoji = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
-        fields = ['id', 'text', 'created_at', 'is_read', 'is_mine']
+        fields = ['id', 'text', 'created_at', 'is_read', 'is_mine',
+                  'is_admin', 'sender_name', 'sender_avatar_url', 'sender_emoji']
 
     def get_is_mine(self, obj):
         request = self.context.get('request')
         return bool(request and obj.sender_id == request.user.id)
+
+    def get_is_admin(self, obj):
+        return bool(obj.sender.is_superuser)
+
+    def get_sender_name(self, obj):
+        return obj.sender.username
+
+    def get_sender_avatar_url(self, obj):
+        request = self.context.get('request')
+        img = None
+        if obj.sender.is_superuser:
+            ap = getattr(obj.sender, 'admin_profile', None)
+            if ap and ap.image:
+                img = ap.image
+        else:
+            sp = getattr(obj.sender, 'profile', None)
+            if sp and sp.avatar and sp.avatar.image:
+                img = sp.avatar.image
+        if not img:
+            return None
+        return request.build_absolute_uri(img.url) if request else img.url
+
+    def get_sender_emoji(self, obj):
+        if obj.sender.is_superuser:
+            return ''
+        sp = getattr(obj.sender, 'profile', None)
+        return sp.avatar.emoji if sp and sp.avatar else ''
 
 
 class SendMessageSerializer(serializers.Serializer):
