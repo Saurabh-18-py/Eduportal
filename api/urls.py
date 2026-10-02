@@ -35,3 +35,6 @@ urlpatterns = [
     path('messages/', views.InboxView.as_view(), name='inbox'),
     path('messages/send/', views.SendMessageView.as_view(), name='message-send'),
 ]
+
+from .admin_urls import urlpatterns as _admin_urls  # noqa: E402
+urlpatterns += _admin_urls

@@ -33,3 +33,18 @@ class PushSubscription(models.Model):
             'endpoint': self.endpoint,
             'keys': {'p256dh': self.p256dh, 'auth': self.auth},
         }
+
+
+class ExpoPushToken(models.Model):
+    """One row per phone running the native app (Expo push token)."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='expo_push_tokens',
+    )
+    token = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.token[:30]}"

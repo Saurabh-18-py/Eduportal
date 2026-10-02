@@ -28,10 +28,11 @@ class StudentProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
     avatar = AvatarSerializer(read_only=True)
+    is_admin = serializers.BooleanField(source='user.is_superuser', read_only=True)
 
     class Meta:
         model = StudentProfile
-        fields = ['username', 'email', 'class_level', 'phone', 'avatar']
+        fields = ['username', 'email', 'class_level', 'phone', 'avatar', 'is_admin']
 
 
 class RegisterSerializer(serializers.ModelSerializer):
