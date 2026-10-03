@@ -9,3 +9,11 @@ urlpatterns = [
     path('admin/upload/note/', v.UploadNoteView.as_view()),
     path('admin/upload/pyq/', v.UploadPYQView.as_view()),
 ]
+
+from . import admin_manage as m  # noqa: E402
+
+urlpatterns += [
+    path('admin/overview/', m.OverviewView.as_view()),
+    path('admin/users/', m.UserListView.as_view()),
+    path('admin/users/<int:user_id>/', m.UserDetailView.as_view()),
+]
