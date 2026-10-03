@@ -17,3 +17,14 @@ urlpatterns += [
     path('admin/users/', m.UserListView.as_view()),
     path('admin/users/<int:user_id>/', m.UserDetailView.as_view()),
 ]
+
+from . import admin_content as c  # noqa: E402
+
+urlpatterns += [
+    path('admin/subjects/', c.SubjectCreateView.as_view()),
+    path('admin/subjects/<int:subject_id>/', c.SubjectDetailView.as_view()),
+    path('admin/chapters/', c.ChapterCreateView.as_view()),
+    path('admin/chapters/<int:chapter_id>/', c.ChapterDetailView.as_view()),
+    path('admin/notes/<int:note_id>/', c.NoteDetailView.as_view()),
+    path('admin/pyq/<int:pyq_id>/', c.PYQDetailView.as_view()),
+]
