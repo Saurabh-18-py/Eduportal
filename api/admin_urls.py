@@ -34,3 +34,9 @@ from . import attempt_views as av  # noqa: E402
 urlpatterns += [
     path('attempts/<int:attempt_id>/', av.AttemptDetailView.as_view()),
 ]
+
+from . import streak_views as sv  # noqa: E402
+
+urlpatterns += [
+    path('streak/', sv.StreakView.as_view()),
+]

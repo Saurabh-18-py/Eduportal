@@ -41,6 +41,7 @@ class StudentProfile(models.Model):
         default=10,
         help_text="How many AI Doubt Solver questions this student can ask per day. Raise it here if they ask for more."
     )
+    daily_goal = models.PositiveIntegerField(default=10)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
