@@ -28,3 +28,9 @@ urlpatterns += [
     path('admin/notes/<int:note_id>/', c.NoteDetailView.as_view()),
     path('admin/pyq/<int:pyq_id>/', c.PYQDetailView.as_view()),
 ]
+
+from . import attempt_views as av  # noqa: E402
+
+urlpatterns += [
+    path('attempts/<int:attempt_id>/', av.AttemptDetailView.as_view()),
+]
