@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from core_views import home_view, offline_view
+from core_views import home_view, offline_view, app_download_view
 from notifications.views import service_worker
 
 urlpatterns = [
@@ -17,6 +17,7 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('sw.js', service_worker, name='service_worker'),
     path('offline/', offline_view, name='offline'),
+    path('app/', app_download_view, name='app_download'),
 ]
 
 if settings.DEBUG:

@@ -9,3 +9,7 @@ def home_view(request):
 
 def offline_view(request):
     return render(request, 'offline.html')
+
+
+def app_download_view(request):
+    return render(request, 'app_download.html', {'releases_repo': 'Saurabh-18-py/eduportal-releases'})

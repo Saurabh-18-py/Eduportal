@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Get the App - EduPortal{% endblock %}
+{% block content %}
+<style>
+    .app-hero { max-width: 640px; margin: 2rem auto 1rem; text-align: center; }
+    .app-hero h1 { font-family: var(--font-display); font-size: 2.1rem; line-height: 1.2; margin-bottom: .6rem; }
+    .app-hero p { color: var(--ink-soft); line-height: 1.6; }
+    .app-card { max-width: 640px; margin: 1.4rem auto; background: var(--paper-raised); border: 1px solid var(--rule); border-top: 5px solid var(--gold); border-radius: 12px; padding: 1.4rem; }
+    .app-meta { font-family: var(--font-mono); font-size: .85rem; color: var(--ink-soft); margin-bottom: 1rem; }
+    .app-btn { display: block; text-align: center; background: var(--ink); color: var(--paper); text-decoration: none; font-weight: 600; padding: .95rem 1rem; border-radius: 8px; font-size: 1.05rem; }
+    .app-btn:hover { opacity: .92; }
+    .app-note { font-size: .82rem; color: var(--ink-soft); margin-top: .7rem; text-align: center; }
+    .app-card h2 { font-family: var(--font-display); font-size: 1.25rem; margin-bottom: .8rem; }
+    .app-steps { padding-left: 1.2rem; line-height: 1.7; }
+    .app-steps li { margin-bottom: .5rem; }
+    .app-feats { list-style: none; display: grid; gap: .5rem; }
+    .app-feats li::before { content: "\2713\00a0\00a0"; color: var(--teal); font-weight: 700; }
+    .app-new { white-space: pre-wrap; line-height: 1.6; font-size: .92rem; color: var(--ink-soft); }
+</style>
+
+<section class="app-hero">
+    <span class="eyebrow">Android app</span>
+    <h1>EduPortal, now in your pocket.</h1>
+    <p>CBSE Class 9&ndash;12 notes, previous year papers, timed mock tests with a detailed result report, and an AI doubt solver &mdash; all in one app.</p>
+</section>
+
+<section class="app-card">
+    <div class="app-meta" id="app-meta">Latest version</div>
+    <a class="app-btn" id="app-download" href="https://github.com/{{ releases_repo }}/releases/latest">Download for Android</a>
+    <p class="app-note">Android phones only. The file is a few tens of MB, so use WiFi if you can.</p>
+</section>
+
+<section class="app-card">
+    <h2>How to install</h2>
+    <ol class="app-steps">
+        <li>Tap <strong>Download for Android</strong> and wait for the file to finish downloading.</li>
+        <li>Open the downloaded <strong>EduPortal .apk</strong> file. If Android asks, allow <strong>"Install unknown apps"</strong> for your browser or file manager.</li>
+        <li>If Google Play Protect says <strong>"Unsafe app blocked"</strong>, tap <strong>"Install anyway"</strong>. This warning appears because the app is not on the Play Store yet.</li>
+        <li>Open EduPortal and log in with your website account, or sign up in the app.</li>
+    </ol>
+</section>
+
+<section class="app-card">
+    <h2>What you get</h2>
+    <ul class="app-feats">
+        <li>Chapter-wise notes and subjective questions as PDFs</li>
+        <li>Previous year papers</li>
+        <li>Mock tests with time analysis, a result report and review</li>
+        <li>Daily goal and study streak</li>
+        <li>AI doubt solver and direct messages</li>
+        <li>Updates arrive inside the app</li>
+    </ul>
+</section>
+
+<section class="app-card" id="app-new-wrap" style="display:none">
+    <h2>What's new</h2>
+    <div class="app-new" id="app-new"></div>
+</section>
+
+<script>
+(function () {
+    var repo = "{{ releases_repo }}";
+    fetch("https://api.github.com/repos/" + repo + "/releases/latest", { headers: { Accept: "application/vnd.github+json" } })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (rel) {
+            var asset = (rel.assets || []).filter(function (a) { return /\.apk$/i.test(a.name); })[0];
+            if (!asset) return;
+            document.getElementById("app-download").href = asset.browser_download_url;
+            var mb = Math.round(asset.size / 1048576);
+            var when = rel.published_at ? new Date(rel.published_at).toLocaleDateString() : "";
+            document.getElementById("app-meta").textContent =
+                (rel.name || rel.tag_name) + " \u00b7 " + mb + " MB" + (when ? " \u00b7 " + when : "");
+            if (rel.body && rel.body.trim()) {
+                document.getElementById("app-new").textContent = rel.body.trim();
+                document.getElementById("app-new-wrap").style.display = "block";
+            }
+        })
+        .catch(function () {});
+})();
+</script>
+{% endblock %}
