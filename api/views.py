@@ -288,8 +288,26 @@ class InboxView(APIView):
         thread = Message.objects.filter(
             sender__in=[request.user, owner], recipient__in=[request.user, owner]
         ).order_by('created_at')
-        thread.filter(recipient=request.user, is_read=False).update(is_read=True)
-        return Response({'messages': MessageSerializer(thread, many=True, context={'request': request}).data})
+        # Remember which messages were unread BEFORE marking them read, so the
+        # app can still highlight them (in red) on this load.
+        new_ids = set(
+            thread.filter(recipient=request.user, is_read=False).values_list('id', flat=True)
+        )
+        if new_ids:
+            Message.objects.filter(id__in=new_ids).update(is_read=True)
+        data = MessageSerializer(thread, many=True, context={'request': request}).data
+        for item in data:
+            item['is_new'] = item['id'] in new_ids
+        return Response({'messages': data})
+
+
+class UnreadCountView(APIView):
+    """GET /api/messages/unread/ - how many unread messages the user has (for the red tab badge)."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        count = Message.objects.filter(recipient=request.user, is_read=False).count()
+        return Response({'count': count})
 
 
 class SendMessageView(APIView):
