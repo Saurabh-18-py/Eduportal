@@ -34,6 +34,7 @@ urlpatterns = [
     # --- messages ---
     path('messages/', views.InboxView.as_view(), name='inbox'),
     path('messages/unread/', views.UnreadCountView.as_view(), name='message-unread'),
+    path('admin-profile/', views.AdminProfileView.as_view(), name='admin-profile'),
     path('messages/send/', views.SendMessageView.as_view(), name='message-send'),
 ]
 

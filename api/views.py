@@ -358,3 +358,52 @@ class ChangePasswordView(APIView):
         user.set_password(serializer.validated_data['new_password'])
         user.save(update_fields=['password'])
         return Response({'ok': True})
+
+
+class AdminProfileView(APIView):
+    """GET /api/admin-profile/ - the site owner's public profile (shown when a student taps the admin photo in Messages)."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    # ---- Edit these texts any time ----
+    DISPLAY_NAME = 'Saurabh'
+    TITLE = 'Founder & Developer, EduPortal'
+    BIO = (
+        "Hi, I'm Saurabh. I build and run EduPortal on my own, so every note, mock test "
+        "and fix you see here comes straight from me. My goal is simple: good chapter-wise "
+        "CBSE practice for every student, right on your phone."
+    )
+    HIGHLIGHTS = [
+        'Chapter-wise notes and mock tests for CBSE Class 9-12',
+        'AI doubt solver for quick help',
+        'Message me with feedback or any problem you face',
+    ]
+
+    def get(self, request):
+        from django.contrib.auth import get_user_model
+        from django.core.cache import cache
+
+        admin = get_user_model().objects.filter(is_superuser=True).order_by('id').first()
+        avatar_url = None
+        if admin:
+            ap = getattr(admin, 'admin_profile', None)
+            if ap and ap.image:
+                avatar_url = request.build_absolute_uri(ap.image.url)
+
+        stats = cache.get('admin_profile_stats')
+        if stats is None:
+            stats = {
+                'students': StudentProfile.objects.count(),
+                'notes': Note.objects.count(),
+                'tests': Test.objects.count(),
+                'questions': Question.objects.count(),
+            }
+            cache.set('admin_profile_stats', stats, 600)
+
+        return Response({
+            'name': (admin.first_name if admin and admin.first_name else self.DISPLAY_NAME),
+            'title': self.TITLE,
+            'bio': self.BIO,
+            'avatar_url': avatar_url,
+            'highlights': self.HIGHLIGHTS,
+            'stats': stats,
+        })
