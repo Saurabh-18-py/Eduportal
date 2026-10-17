@@ -298,6 +298,10 @@ class InboxView(APIView):
         data = MessageSerializer(thread, many=True, context={'request': request}).data
         for item in data:
             item['is_new'] = item['id'] in new_ids
+        from .admin_profile import avatar_video_url
+        _vurl = avatar_video_url(request)
+        for item in data:
+            item['sender_video_url'] = _vurl if item.get('is_admin') else None
         return Response({'messages': data})
 
 

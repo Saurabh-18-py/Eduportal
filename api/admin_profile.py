@@ -39,6 +39,23 @@ def _video_info(ap, request):
     return None
 
 
+def avatar_video_url(request):
+    """Small square video for the admin's round avatar in Messages (None if there is no playable video)."""
+    admin = _owner()
+    ap = getattr(admin, 'admin_profile', None) if admin else None
+    info = _video_info(ap, request)
+    if not info or info['kind'] == 'youtube':
+        return None
+    url = info['url']
+    if '/video/upload/' in url:
+        # Cloudinary: tiny 200x200 clip, first 8 seconds, light quality -> loads fast and loops nicely
+        url = url.replace('/video/upload/', '/video/upload/w_200,h_200,c_fill,du_8,q_auto:low,f_mp4/', 1)
+        return re.sub(r'\.[A-Za-z0-9]{2,4}(\?.*)?$', '.mp4', url)
+    if info['kind'] == 'link' and not re.search(r'\.(mp4|webm|mov|m4v)(\?|#|$)', url, re.I):
+        return None
+    return url
+
+
 class AdminProfileView(APIView):
     """GET /api/admin-profile/ - the site owner's public profile (opens when someone taps the admin photo in Messages)."""
     permission_classes = [permissions.IsAuthenticated]
