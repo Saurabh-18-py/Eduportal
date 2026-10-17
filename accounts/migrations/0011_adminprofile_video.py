@@ -5,7 +5,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0009_studentprofile_doubt_limit_per_day'),
+        ('accounts', '0010_studentprofile_daily_goal'),
     ]
 
     operations = [
