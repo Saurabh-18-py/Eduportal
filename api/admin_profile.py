@@ -22,7 +22,13 @@ class IsSuperuser(permissions.BasePermission):
 
 
 def _owner():
-    return get_user_model().objects.filter(is_superuser=True).order_by('id').first()
+    """The admin whose profile is shown: the first superuser that already has a photo/video, else the first superuser."""
+    admins = list(get_user_model().objects.filter(is_superuser=True).order_by('id'))
+    for u in admins:
+        ap = getattr(u, 'admin_profile', None)
+        if ap and (ap.image or ap.video or ap.video_link):
+            return u
+    return admins[0] if admins else None
 
 
 def _video_info(ap, request):
@@ -118,7 +124,7 @@ class AdminProfileVideoView(APIView):
             pass
 
     def post(self, request):
-        ap, _ = AdminProfile.objects.get_or_create(user=request.user)
+        ap, _ = AdminProfile.objects.get_or_create(user=_owner() or request.user)
         link = str(request.data.get('link', '') or '').strip()
         f = request.FILES.get('file')
 
@@ -144,7 +150,7 @@ class AdminProfileVideoView(APIView):
         return Response({'video': _video_info(ap, request)})
 
     def delete(self, request):
-        ap = AdminProfile.objects.filter(user=request.user).first()
+        ap = AdminProfile.objects.filter(user=_owner() or request.user).first()
         if ap:
             self._drop_file(ap)
             ap.video = None
