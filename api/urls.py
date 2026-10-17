@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from . import views
+from . import admin_profile
 
 app_name = 'api'
 
@@ -34,7 +35,8 @@ urlpatterns = [
     # --- messages ---
     path('messages/', views.InboxView.as_view(), name='inbox'),
     path('messages/unread/', views.UnreadCountView.as_view(), name='message-unread'),
-    path('admin-profile/', views.AdminProfileView.as_view(), name='admin-profile'),
+    path('admin-profile/', admin_profile.AdminProfileView.as_view(), name='admin-profile'),
+    path('admin/profile-video/', admin_profile.AdminProfileVideoView.as_view(), name='admin-profile-video'),
     path('messages/send/', views.SendMessageView.as_view(), name='message-send'),
 ]
 

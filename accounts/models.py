@@ -48,6 +48,17 @@ class StudentProfile(models.Model):
         return f"{self.user.username} - Class {self.class_level}"
 
 
+try:
+    from django.conf import settings as _dj_settings
+    if _dj_settings.CLOUDINARY_STORAGE.get('CLOUD_NAME'):
+        from cloudinary_storage.storage import VideoMediaCloudinaryStorage
+        VIDEO_STORAGE = VideoMediaCloudinaryStorage()
+    else:
+        VIDEO_STORAGE = None
+except Exception:
+    VIDEO_STORAGE = None
+
+
 class AdminProfile(models.Model):
     """
     The site owner's own profile picture, set separately from the student
@@ -56,6 +67,9 @@ class AdminProfile(models.Model):
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='admin_profile')
     image = models.ImageField(upload_to='admin_avatars/', blank=True, null=True, help_text="Your own profile picture")
+
+    video = models.FileField(upload_to='admin_videos/', storage=VIDEO_STORAGE, blank=True, null=True, max_length=255, help_text="Intro video shown on your profile")
+    video_link = models.URLField(max_length=500, blank=True, default='', help_text="Or paste a YouTube / video link")
 
     def __str__(self):
         return f"Admin profile - {self.user.username}"
