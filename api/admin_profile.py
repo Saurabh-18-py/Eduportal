@@ -79,16 +79,13 @@ class AdminProfileView(APIView):
     DISPLAY_NAME = 'Saurabh'
     TITLE = 'Founder & Developer, EduPortal'
     BIO = (
-        "Hey! Main Saurabh hu, EduPortal ka banane wala. Ye poora app aur website mai akela "
-        "banata aur chalata hu, isliye yahan jo bhi notes, tests aur doubt solver hai, sab "
-        "tumhare liye hi banaya hai.\n\n"
-        "Koi galti dikhe, kisi chapter ke notes ya test chahiye, ya bas kuch poochna ho, "
-        "seedha mujhe message karo. Tumhara message mere paas hi aata hai."
+        "Hello! I'm Saurabh, and I'm glad you're here. Whatever you need for your studies, "
+        "just ask. I'm always a message away."
     )
     HIGHLIGHTS = [
-        'Class 9 se 12 (CBSE) ke chapter-wise notes aur mock tests',
-        'Doubt aaye to AI doubt solver se pooch lo',
-        'Kuch galat lage ya suggestion ho, to mujhe message karo',
+        'Chapter-wise notes and mock tests',
+        'AI doubt solver',
+        'Message me for any problem',
     ]
 
     def get(self, request):
