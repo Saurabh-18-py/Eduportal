@@ -36,6 +36,7 @@ urlpatterns = [
     path('messages/', views.InboxView.as_view(), name='inbox'),
     path('messages/unread/', views.UnreadCountView.as_view(), name='message-unread'),
     path('admin-profile/', admin_profile.AdminProfileView.as_view(), name='admin-profile'),
+    path('admin/profile-video/sign/', admin_profile.AdminVideoSignView.as_view(), name='admin-profile-video-sign'),
     path('admin/profile-video/', admin_profile.AdminProfileVideoView.as_view(), name='admin-profile-video'),
     path('messages/send/', views.SendMessageView.as_view(), name='message-send'),
 ]

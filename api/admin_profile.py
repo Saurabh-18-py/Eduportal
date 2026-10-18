@@ -31,6 +31,14 @@ def _owner():
     return admins[0] if admins else None
 
 
+def _cld_mp4(url):
+    """Cloudinary video -> delivered as mp4 (plays on every phone, even if the original was .mov)."""
+    if '/video/upload/' in url and 'f_mp4' not in url:
+        url = url.replace('/video/upload/', '/video/upload/f_mp4,q_auto/', 1)
+        url = re.sub(r'\.[A-Za-z0-9]{2,4}(\?.*)?$', '.mp4', url)
+    return url
+
+
 def _video_info(ap, request):
     if not ap:
         return None
@@ -38,10 +46,11 @@ def _video_info(ap, request):
         m = YT_RE.search(ap.video_link)
         if m:
             return {'kind': 'youtube', 'url': ap.video_link, 'youtube_id': m.group(1)}
-        return {'kind': 'link', 'url': ap.video_link, 'youtube_id': None}
+        return {'kind': 'link', 'url': _cld_mp4(ap.video_link), 'youtube_id': None}
     if ap.video:
         url = ap.video.url
-        return {'kind': 'file', 'url': request.build_absolute_uri(url) if url.startswith('/') else url, 'youtube_id': None}
+        url = request.build_absolute_uri(url) if url.startswith('/') else url
+        return {'kind': 'file', 'url': _cld_mp4(url), 'youtube_id': None}
     return None
 
 
@@ -52,7 +61,7 @@ def avatar_video_url(request):
     info = _video_info(ap, request)
     if not info or info['kind'] == 'youtube':
         return None
-    url = info['url']
+    url = info['url'].replace('/video/upload/f_mp4,q_auto/', '/video/upload/')
     if '/video/upload/' in url:
         # Cloudinary: tiny 200x200 clip, first 8 seconds, light quality -> loads fast and loops nicely
         url = url.replace('/video/upload/', '/video/upload/w_200,h_200,c_fill,du_8,q_auto:low,f_mp4/', 1)
@@ -157,3 +166,22 @@ class AdminProfileVideoView(APIView):
             ap.video_link = ''
             ap.save()
         return Response({'video': None})
+
+
+class AdminVideoSignView(APIView):
+    """GET /api/admin/profile-video/sign/ -> signed params so the app can upload a video straight to Cloudinary."""
+    permission_classes = [IsSuperuser]
+
+    def get(self, request):
+        import hashlib
+        import time
+        from django.conf import settings
+
+        cfg = getattr(settings, 'CLOUDINARY_STORAGE', {}) or {}
+        cloud, key, secret = cfg.get('CLOUD_NAME'), cfg.get('API_KEY'), cfg.get('API_SECRET')
+        if not (cloud and key and secret):
+            return Response({'error': 'Cloudinary is not configured on the server.'}, status=400)
+        folder = 'admin_videos'
+        ts = int(time.time())
+        signature = hashlib.sha1(f'folder={folder}&timestamp={ts}{secret}'.encode()).hexdigest()
+        return Response({'cloud_name': cloud, 'api_key': key, 'timestamp': ts, 'folder': folder, 'signature': signature})
