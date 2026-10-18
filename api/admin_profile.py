@@ -54,7 +54,7 @@ def _video_info(ap, request):
     return None
 
 
-def avatar_video_url(request):
+def avatar_video_url(request, size=200, seconds=8):
     """Small square video for the admin's round avatar in Messages (None if there is no playable video)."""
     admin = _owner()
     ap = getattr(admin, 'admin_profile', None) if admin else None
@@ -64,7 +64,7 @@ def avatar_video_url(request):
     url = info['url'].replace('/video/upload/f_mp4,q_auto/', '/video/upload/')
     if '/video/upload/' in url:
         # Cloudinary: tiny 200x200 clip, first 8 seconds, light quality -> loads fast and loops nicely
-        url = url.replace('/video/upload/', '/video/upload/w_200,h_200,c_fill,du_8,q_auto:low,f_mp4/', 1)
+        url = url.replace('/video/upload/', f'/video/upload/w_{size},h_{size},c_fill,du_{seconds},q_auto:low,f_mp4/', 1)
         return re.sub(r'\.[A-Za-z0-9]{2,4}(\?.*)?$', '.mp4', url)
     if info['kind'] == 'link' and not re.search(r'\.(mp4|webm|mov|m4v)(\?|#|$)', url, re.I):
         return None
@@ -79,14 +79,16 @@ class AdminProfileView(APIView):
     DISPLAY_NAME = 'Saurabh'
     TITLE = 'Founder & Developer, EduPortal'
     BIO = (
-        "Hi, I'm Saurabh. I build and run EduPortal on my own, so every note, mock test "
-        "and fix you see here comes straight from me. My goal is simple: good chapter-wise "
-        "CBSE practice for every student, right on your phone."
+        "Hey! Main Saurabh hu, EduPortal ka banane wala. Ye poora app aur website mai akela "
+        "banata aur chalata hu, isliye yahan jo bhi notes, tests aur doubt solver hai, sab "
+        "tumhare liye hi banaya hai.\n\n"
+        "Koi galti dikhe, kisi chapter ke notes ya test chahiye, ya bas kuch poochna ho, "
+        "seedha mujhe message karo. Tumhara message mere paas hi aata hai."
     )
     HIGHLIGHTS = [
-        'Chapter-wise notes and mock tests for CBSE Class 9-12',
-        'AI doubt solver for quick help',
-        'Message me with feedback or any problem you face',
+        'Class 9 se 12 (CBSE) ke chapter-wise notes aur mock tests',
+        'Doubt aaye to AI doubt solver se pooch lo',
+        'Kuch galat lage ya suggestion ho, to mujhe message karo',
     ]
 
     def get(self, request):
@@ -94,15 +96,14 @@ class AdminProfileView(APIView):
         ap = getattr(admin, 'admin_profile', None) if admin else None
         avatar_url = request.build_absolute_uri(ap.image.url) if ap and ap.image else None
 
-        stats = cache.get('admin_profile_stats')
+        stats = cache.get('admin_profile_stats_v2')
         if stats is None:
             stats = {
-                'students': StudentProfile.objects.count(),
                 'notes': Note.objects.count(),
                 'tests': Test.objects.count(),
                 'questions': Question.objects.count(),
             }
-            cache.set('admin_profile_stats', stats, 600)
+            cache.set('admin_profile_stats_v2', stats, 600)
 
         return Response({
             'name': (admin.first_name if admin and admin.first_name else self.DISPLAY_NAME),
@@ -112,6 +113,7 @@ class AdminProfileView(APIView):
             'highlights': self.HIGHLIGHTS,
             'stats': stats,
             'video': _video_info(ap, request),
+            'avatar_video_url': avatar_video_url(request, size=400, seconds=10),
             'can_edit': bool(request.user.is_superuser),
         })
 
